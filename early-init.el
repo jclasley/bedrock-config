@@ -38,3 +38,13 @@
                             (background-color . "#000000")
                             (ns-appearance . dark)
                             (ns-transparent-titlebar . t)))
+(setenv "LIBRARY_PATH" "/usr/local/opt/gcc/lib/gcc/10:/usr/local/opt/libgccjit/lib/gcc/10:/usr/local/opt/gcc/lib/gcc/10/gcc/x86_64-apple-darwin20/10.2.0")
+(defun my-append-env-var (var-name value)
+  "Append VALUE to the beginning of current value of env variable VAR-NAME."
+  (setenv var-name (if (getenv var-name)
+                       (format "%s:%s" value (getenv var-name))
+                     value)))
+
+(let ((gccjitpath "/opt/homebrew/lib/gcc/11:/opt/homebrew/lib"))
+  (mapc (lambda (var-name) (my-append-env-var var-name gccjitpath))
+        '("LIBRARY_PATH" "LD_LIBRARY_PATH" "PATH")))
