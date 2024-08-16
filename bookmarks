@@ -1,0 +1,17 @@
+;;;; Emacs Bookmark Format Version 1;;;; -*- coding: utf-8-emacs; mode: lisp-data -*-
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(("config.org"
+ (filename . "~/bedrock/config.org")
+ (front-context-string . "nguages\n\n** Flyc")
+ (rear-context-string . "\n#+end_src\n\n* La")
+ (position . 24497)
+ (last-modified 26302 5893 659688 0))
+("org-capture-last-stored"
+ (filename . "~/org/projects.org")
+ (front-context-string . "* TODO Variable ")
+ (rear-context-string . "ight is reached\n")
+ (position . 767)
+ (last-modified 26300 5727 916680 0))
+)

@@ -1,0 +1,1 @@
+("~/emacs-pkgs/sticky-mode/" "~/bedrock/" "~/personal-website/")
