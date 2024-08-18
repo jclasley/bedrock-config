@@ -261,8 +261,9 @@
 
 (eldoc-mode 1)
 ;; theme
-(add-to-list 'custom-theme-load-path "~/bedrock/themes")
 (use-package dracula-theme
+  :config
+  (add-to-list 'custom-theme-load-path "~/bedrock/themes")
   :init
   (load-theme 'dracula t))
 
@@ -316,6 +317,23 @@
   :ensure t
   :init (global-origami-mode))
 
+(use-package popper
+  :ensure t ; or :straight t
+  :bind (("C-`"   . popper-toggle)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type)
+         ("C-<escape>" . popper-kill-latest-popup))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          "*vterm*"
+          help-mode
+          compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))
+
 (use-package treemacs
   :ensure t
   :config
@@ -368,6 +386,8 @@
 ;; 
   ;; config files
   (setq +org-chores-file (expand-file-name "~/org/chores.org"))
+  (setq org-agenda-start-day nil
+        org-agenda-span 1)
   :bind
   (("C-c o a" . org-agenda)
    ("C-c o c" . org-capture))
@@ -445,6 +465,11 @@
                               ("c" "chore" entry
                                (file +org-chores-file)
                                "* TODO %?\nDEADLINE: %t")))
+
+(use-package org-roam
+  :ensure t
+  :bind
+  (("C-c o r i" . org-roam-node-insert)))
 
 (use-package yasnippet
   :ensure t
@@ -550,6 +575,9 @@
   :ensure t ; only need to install it, embark loads it after consult if found
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package magit
+  :ensure t)
 
 (use-package vterm
   :ensure t)
@@ -659,16 +687,24 @@
 
 (setq treesit-language-source-alist
       '(("gomod" . "https://github.com/camdencheek/tree-sitter-go-mod")
-        ("go" . "https://github.com/tree-sitter/tree-sitter-go")))
+        ("go" . "https://github.com/tree-sitter/tree-sitter-go")
+        (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
+         "v0.20.3"
+         "tsx/src"))))
 
 (use-package lsp-mode
   :ensure t
   :hook
   ;; go
-  ((go-ts-mode . lsp-deferred)))
+  ((go-ts-mode . lsp-deferred)
+   (tsx-ts-mode . lsp-deferred)))
 
 (defun lsp-format-and-organize-imports ()
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
+(add-hook 'go-ts-mode #'lsp-format-and-organize-imports)
+
+(add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
+(add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
