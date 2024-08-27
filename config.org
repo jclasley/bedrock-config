@@ -265,8 +265,6 @@ Pretty much always want tab width to be 2
   (setopt tab-width 4)
 #+end_src
 
-
-
 * General packages
 Turn off company mode, it interferes with ~corfu~
 #+begin_src elisp
@@ -360,6 +358,11 @@ rainbow delimiters
 #+end_src
 
 ** Windows
+Delete a window more easily
+#+begin_src elisp
+  (keymap-set global-map "C-c w d" 'delete-window)
+#+end_src
+
 
 *** popper
 #+begin_src elisp
@@ -396,6 +399,23 @@ rainbow delimiters
     :init (eyebrowse-mode 1))
 #+end_src
 
+*** ace window
+#+begin_src elisp
+  (use-package ace-window
+    :ensure t
+    :bind
+    (("C-c w w" . ace-window)))
+#+end_src
+
+
+** Search
+#+begin_src elisp
+  (use-package avy
+    :ensure t
+    :bind
+    (("C-c a l" . avy-goto-line)
+     ("C-c a c" . avy-goto-char-timer)))
+#+end_src
 
 * Org
 
@@ -546,8 +566,12 @@ Create the custom agenda command for super agenda
 #+begin_src elisp
   (use-package org-roam
     :ensure t
+    :config
+    (org-roam-db-autosync-mode 1)
+    (setq org-roam-db-location "~/.config/emacs/.local/cache/org-roam.db")
     :bind
-    (("C-c o r i" . org-roam-node-insert)))
+    (("C-c o r i" . org-roam-node-insert)
+     ("C-c o r f" . org-roam-node-find)))
 #+end_src
 
 * yas
@@ -569,6 +593,7 @@ Create the custom agenda command for super agenda
 ** Vertico
 #+begin_src elisp
   (use-package vertico
+    :after meow
     :ensure t
     :custom
     (vertico-count 20) ;; Show more candidates
@@ -578,9 +603,29 @@ Create the custom agenda command for super agenda
     ;; (keymap-set vertico-map "TAB" #'vertico-next)
     ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
     :bind
-    (("C-c '" . vertico-repeat))
+    (("C-c '" . vertico-repeat)
+     :map vertico-map
+     ("<escape>" . vertico-suspend))
     :init (vertico-mode))
 #+end_src
+
+*** Extensions
+#+begin_src elisp
+  (use-package vertico-suspend
+    :after vertico
+    :ensure nil)
+
+  (use-package vertico-repeat
+    :after vertico)
+
+  (use-package vertico-directory
+    :after vertico
+    :bind
+    (:map vertico-map
+     ("M-DEL" . vertico-directory-delete-word)))
+          
+#+end_src
+
 ** Orderless
 #+begin_src elisp
   (use-package orderless
@@ -792,11 +837,13 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
     :config
     (meow-setup)
     (setq meow-use-clipboard t)
+    (setq meow-keypad-self-insert-undefined nil)
     :init
     (meow-global-mode 1))
 #+end_src
 
 * Languages
+TODO: have to get xref working
 
 ** Flycheck
 #+begin_src elisp
@@ -816,14 +863,17 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 ** treesit
 #+begin_src elisp
   (setq treesit-language-source-alist
-        '(("gomod" . "https://github.com/camdencheek/tree-sitter-go-mod")
-          ("go" . "https://github.com/tree-sitter/tree-sitter-go")
+        '((gomod . ("https://github.com/camdencheek/tree-sitter-go-mod" "v0.19.1"))
+          (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.19.1"))
           (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
            "v0.20.3"
-           "tsx/src"))))
+           "tsx/src"))
+          (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
+          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
 #+end_src
 
 ** lsp
+
 #+begin_src elisp
     (use-package lsp-mode
       :ensure t
@@ -843,10 +893,23 @@ Format and organize before saving
 #+end_src
 
 *** Go
+Also get go-mode
+#+begin_src elisp
+  (use-package go-mode
+    :ensure t)
+#+end_src
+
 #+begin_src elisp
   (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
   (add-hook 'go-ts-mode #'lsp-format-and-organize-imports)
 #+end_src
+
+**** templ
+#+begin_src elisp
+  (use-package templ-ts-mode
+    :ensure t)
+#+end_src
+
 
 *** TSX
 #+begin_src elisp
@@ -855,4 +918,18 @@ Format and organize before saving
 #+end_src
 
 
+* Helping
+[[https://www.reddit.com/r/emacs/comments/1ewv1om/do_you_use_any_package_to_show_a_directory_tree/][This reddit post]]
+
+#+begin_src elisp
+    (defun treemacs-git-project ()
+    (if-let ((root (project-root (project-current t)))
+             (name (project-name (project-current t))))
+        (progn
+          (treemacs-do-add-project-to-workspace root name)
+          (message (format "Added %s to treemacs" name)))
+      (message "No project found")))
+
+    (add-hook 'treemacs-post-buffer-init-hook #'treemacs-git-project)
+#+end_src
 

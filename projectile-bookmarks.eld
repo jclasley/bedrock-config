@@ -1,1 +1,1 @@
-("~/personal-website/" "~/bedrock/" "~/.doom.d/" "~/emacs-pkgs/sticky-mode/")
+("~/bedrock/" "~/grokker/" "~/personal-website/" "~/.doom.d/" "~/emacs-pkgs/sticky-mode/")

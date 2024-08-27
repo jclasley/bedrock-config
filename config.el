@@ -317,6 +317,8 @@
   :ensure t
   :init (global-origami-mode))
 
+(keymap-set global-map "C-c w d" 'delete-window)
+
 (use-package popper
   :ensure t ; or :straight t
   :bind (("C-`"   . popper-toggle)
@@ -342,6 +344,17 @@
 (use-package eyebrowse
   :ensure t
   :init (eyebrowse-mode 1))
+
+(use-package ace-window
+  :ensure t
+  :bind
+  (("C-c w w" . ace-window)))
+
+(use-package avy
+  :ensure t
+  :bind
+  (("C-c a l" . avy-goto-line)
+   ("C-c a c" . avy-goto-char-timer)))
 
 (setq org-tag-alist (append '((:startgroup . nil) ; at most one of the following
                             ("@home" . ?h)
@@ -468,8 +481,12 @@
 
 (use-package org-roam
   :ensure t
+  :config
+  (org-roam-db-autosync-mode 1)
+  (setq org-roam-db-location "~/.config/emacs/.local/cache/org-roam.db")
   :bind
-  (("C-c o r i" . org-roam-node-insert)))
+  (("C-c o r i" . org-roam-node-insert)
+   ("C-c o r f" . org-roam-node-find)))
 
 (use-package yasnippet
   :ensure t
@@ -481,6 +498,7 @@
   (load (expand-file-name "~/bedrock/config.el")))
 
 (use-package vertico
+  :after meow
   :ensure t
   :custom
   (vertico-count 20) ;; Show more candidates
@@ -490,8 +508,23 @@
   ;; (keymap-set vertico-map "TAB" #'vertico-next)
   ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
   :bind
-  (("C-c '" . vertico-repeat))
+  (("C-c '" . vertico-repeat)
+   :map vertico-map
+   ("<escape>" . vertico-suspend))
   :init (vertico-mode))
+
+(use-package vertico-suspend
+  :after vertico
+  :ensure nil)
+
+(use-package vertico-repeat
+  :after vertico)
+
+(use-package vertico-directory
+  :after vertico
+  :bind
+  (:map vertico-map
+   ("M-DEL" . vertico-directory-delete-word)))
 
 (use-package orderless
   :ensure t
@@ -673,6 +706,7 @@
   :config
   (meow-setup)
   (setq meow-use-clipboard t)
+  (setq meow-keypad-self-insert-undefined nil)
   :init
   (meow-global-mode 1))
 
@@ -686,11 +720,13 @@
   :init (setq markdown-command "multimarkdown"))
 
 (setq treesit-language-source-alist
-      '(("gomod" . "https://github.com/camdencheek/tree-sitter-go-mod")
-        ("go" . "https://github.com/tree-sitter/tree-sitter-go")
+      '((gomod . ("https://github.com/camdencheek/tree-sitter-go-mod" "v0.19.1"))
+        (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.19.1"))
         (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
          "v0.20.3"
-         "tsx/src"))))
+         "tsx/src"))
+        (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
+        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
 
 (use-package lsp-mode
   :ensure t
@@ -703,8 +739,24 @@
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
+(use-package go-mode
+  :ensure t)
+
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
 (add-hook 'go-ts-mode #'lsp-format-and-organize-imports)
 
+(use-package templ-ts-mode
+  :ensure t)
+
 (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
 (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
+
+(defun treemacs-git-project ()
+(if-let ((root (project-root (project-current t)))
+         (name (project-name (project-current t))))
+    (progn
+      (treemacs-do-add-project-to-workspace root name)
+      (message (format "Added %s to treemacs" name)))
+  (message "No project found")))
+
+(add-hook 'treemacs-post-buffer-init-hook #'treemacs-git-project)
