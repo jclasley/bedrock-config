@@ -252,9 +252,11 @@
 
 (setopt tab-width 4)
 
-(global-company-mode -1)
+;; (global-company-mode -1)
 
 (use-package dash :ensure t)
+
+(use-package ag :ensure t)
 
 (winner-mode 1)
 (recentf-mode 1)
@@ -295,6 +297,10 @@
   ;; setting is useful beyond Corfu.
   (read-extended-command-predicate #'command-completion-default-include-p)
   (enable-recursive-minibuffers t)
+  :config
+  (global-hl-line-mode -1)
+  (hl-line-mode -1)
+  (electric-pair-mode 1)
   :init
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
@@ -313,8 +319,14 @@
   (("s-p" . #'projectile-command-map))
   :init (projectile-mode +1))
 
+(use-package ag :ensure t)
+
 (use-package origami
   :ensure t
+  :bind
+  (("C-c z z" . origami-forward-toggle-node)
+   ("C-c z C" . origami-close-all-nodes)
+   ("C-c z O" . origami-open-all-nodes))
   :init (global-origami-mode))
 
 (keymap-set global-map "C-c w d" 'delete-window)
@@ -322,7 +334,7 @@
 (use-package popper
   :ensure t ; or :straight t
   :bind (("C-`"   . popper-toggle)
-         ("M-`"   . popper-cycle)
+         ("s-."   . popper-cycle)
          ("C-M-`" . popper-toggle-type)
          ("C-<escape>" . popper-kill-latest-popup))
   :init
@@ -479,6 +491,9 @@
                                (file +org-chores-file)
                                "* TODO %?\nDEADLINE: %t")))
 
+(use-package org-brain
+  :ensure t)
+
 (use-package org-roam
   :ensure t
   :config
@@ -509,16 +524,17 @@
   ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
   :bind
   (("C-c '" . vertico-repeat)
-   :map vertico-map
-   ("<escape>" . vertico-suspend))
-  :init (vertico-mode))
+   (:map vertico-map 
+         ("<escape>" . vertico-suspend)))
+  :init (vertico-mode 1))
 
 (use-package vertico-suspend
   :after vertico
   :ensure nil)
 
 (use-package vertico-repeat
-  :after vertico)
+  :after vertico
+  :ensure nil)
 
 (use-package vertico-directory
   :after vertico
@@ -531,6 +547,25 @@
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package company
+  :ensure t
+  :config
+  (setq company-tooltip-align-annotations t
+        company-show-quick-access t
+        company-files-exclusions '(".git/" ".DS_Store")
+        ;; use letters instead of icons
+        company-format-margin-function #'company-text-icons-margin
+        company-text-icons-add-background t)
+  (custom-set-faces
+   '(company-tooltip-annotation ((t (:foreground "dark gray")))))
+  ;; customize the anno
+  :bind
+  (:map company-active-map
+        ([tab] . company-complete-common-or-cycle)
+        ("<escape>" . company-abort))
+  :init
+  (global-company-mode 1))
 
 (use-package corfu
   :ensure t
@@ -546,7 +581,7 @@
       ([tab] . corfu-next)
       ("S-TAB" . corfu-previous)
       ([backtab] . corfu-previous))
-  :init (global-corfu-mode 1))
+  :init (global-corfu-mode -1))
 
 (use-package consult
   :ensure t
@@ -554,6 +589,7 @@
   ;; meow SPC x b
   (("C-c s b" . consult-buffer)
    ("C-c s l" . consult-line)
+   ("C-c s r" . consult-recent-file)
    ("C-c s o" . consult-outline)
    ("C-c s i" . consult-imenu)))
 
@@ -610,7 +646,9 @@
   (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package magit
-  :ensure t)
+  :ensure t
+  :bind
+  (("C-M-g" . magit)))
 
 (use-package vterm
   :ensure t)
@@ -720,19 +758,22 @@
   :init (setq markdown-command "multimarkdown"))
 
 (setq treesit-language-source-alist
-      '((gomod . ("https://github.com/camdencheek/tree-sitter-go-mod" "v0.19.1"))
-        (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.19.1"))
+      '((gomod "https://github.com/camdencheek/tree-sitter-go-mod")
+        (go "https://github.com/tree-sitter/tree-sitter-go" "v0.19.1")
         (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
          "v0.20.3"
          "tsx/src"))
         (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
 
+(use-package yaml-mode
+  :ensure t)
+
 (use-package lsp-mode
   :ensure t
   :hook
   ;; go
-  ((go-ts-mode . lsp-deferred)
+  ((go-mode . lsp-deferred)
    (tsx-ts-mode . lsp-deferred)))
 
 (defun lsp-format-and-organize-imports ()
@@ -742,8 +783,9 @@
 (use-package go-mode
   :ensure t)
 
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode))
-(add-hook 'go-ts-mode #'lsp-format-and-organize-imports)
+(add-to-list 'auto-mode-alist '("\\.go" . go-mode))
+(add-to-list 'major-mode-remap-alist '(go-ts-mode . go-mode))
+(add-hook 'go-mode #'lsp-format-and-organize-imports)
 
 (use-package templ-ts-mode
   :ensure t)
