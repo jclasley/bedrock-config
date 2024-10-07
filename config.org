@@ -356,7 +356,7 @@ rainbow delimiters
     :config
     (setq projectile-switch-project-action 'projectile-dired)
     :bind
-    (("s-p" . #'projectile-command-map))
+    (("C-c p" . #'projectile-command-map))
     :init (projectile-mode +1))
 #+end_src
 
@@ -651,24 +651,23 @@ Using tab-and-go completion style
 
 *** Company
 #+begin_src elisp
-    (use-package company
-      :ensure t
-      :config
-      (setq company-tooltip-align-annotations t
-            company-show-quick-access t
-            company-files-exclusions '(".git/" ".DS_Store")
-            ;; use letters instead of icons
-            company-format-margin-function #'company-text-icons-margin
-            company-text-icons-add-background t)
-      (custom-set-faces
-       '(company-tooltip-annotation ((t (:foreground "dark gray")))))
-      ;; customize the anno
-      :bind
-      (:map company-active-map
-            ([tab] . company-complete-common-or-cycle)
-            ("<escape>" . company-abort))
-      :init
-      (global-company-mode 1))
+  (use-package company
+    :ensure t
+    :config
+    (setq company-tooltip-align-annotations t
+          company-show-quick-access t
+          company-files-exclusions '(".git/" ".DS_Store")
+          ;; use letters instead of icons
+          company-format-margin-function #'company-text-icons-margin
+          company-text-icons-add-background t)
+    (custom-set-faces
+     '(company-tooltip-annotation ((t (:foreground "dark gray")))))
+    (append company-backends '(:with company-yasnippet))
+    :bind
+    (:map company-active-map
+          ([tab] . company-complete-common-or-cycle))
+    :init
+    (global-company-mode 1))
 #+end_src
 
 
@@ -700,9 +699,13 @@ Not using it for now, trying out company
     ;; meow SPC x b
     (("C-c s b" . consult-buffer)
      ("C-c s l" . consult-line)
-     ("C-c s r" . consult-recent-file)
+     ("C-c s f" . consult-recent-file)
      ("C-c s o" . consult-outline)
-     ("C-c s i" . consult-imenu)))
+     ("C-c s i" . consult-imenu)
+     ("C-c s p" . consult-project-buffer)
+     ("C-c b" . consult-bookmark)
+     ("C-c s r" . consult-ripgrep)
+     ("C-c s y" . consult-yank-replace)))
 #+end_src
 
 #+RESULTS:
@@ -920,16 +923,6 @@ TODO: have to get xref working
 
 
 ** lsp
-#+begin_src elisp
-    (use-package lsp-mode
-      :ensure t
-      :hook
-      ;; go
-      ((go-mode . lsp-deferred)
-       (tsx-ts-mode . lsp-deferred)))
-#+end_src
-
-*** Convenience hooks
 Format and organize before saving
 
 #+begin_src elisp
@@ -938,11 +931,21 @@ Format and organize before saving
     (add-hook 'before-save-hook #'lsp-organize-imports t t))
 #+end_src
 
+#+begin_src elisp
+  (use-package lsp-mode
+    :ensure t
+    :hook
+    ;; go
+    ((go-mode . lsp-deferred)
+     (go-mode . lsp-format-and-organize-imports)
+     (tsx-ts-mode . lsp-deferred)))
+#+end_src
+
 *** Go
 Also get go-mode
 #+begin_src elisp
-  (use-package go-mode
-    :ensure t)
+    (use-package go-mode
+      :ensure t)
 #+end_src
 
 #+begin_src elisp

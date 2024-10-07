@@ -316,17 +316,11 @@
   :config
   (setq projectile-switch-project-action 'projectile-dired)
   :bind
-  (("s-p" . #'projectile-command-map))
+  (("C-c p" . #'projectile-command-map))
   :init (projectile-mode +1))
-
-(use-package ag :ensure t)
 
 (use-package origami
   :ensure t
-  :bind
-  (("C-c z z" . origami-forward-toggle-node)
-   ("C-c z C" . origami-close-all-nodes)
-   ("C-c z O" . origami-open-all-nodes))
   :init (global-origami-mode))
 
 (keymap-set global-map "C-c w d" 'delete-window)
@@ -491,9 +485,6 @@
                                (file +org-chores-file)
                                "* TODO %?\nDEADLINE: %t")))
 
-(use-package org-brain
-  :ensure t)
-
 (use-package org-roam
   :ensure t
   :config
@@ -559,11 +550,10 @@
         company-text-icons-add-background t)
   (custom-set-faces
    '(company-tooltip-annotation ((t (:foreground "dark gray")))))
-  ;; customize the anno
+  (append company-backends '(:with company-yasnippet))
   :bind
   (:map company-active-map
-        ([tab] . company-complete-common-or-cycle)
-        ("<escape>" . company-abort))
+        ([tab] . company-complete-common-or-cycle))
   :init
   (global-company-mode 1))
 
@@ -589,9 +579,13 @@
   ;; meow SPC x b
   (("C-c s b" . consult-buffer)
    ("C-c s l" . consult-line)
-   ("C-c s r" . consult-recent-file)
+   ("C-c s f" . consult-recent-file)
    ("C-c s o" . consult-outline)
-   ("C-c s i" . consult-imenu)))
+   ("C-c s i" . consult-imenu)
+   ("C-c s p" . consult-project-buffer)
+   ("C-c b" . consult-bookmark)
+   ("C-c s r" . consult-ripgrep)
+   ("C-c s y" . consult-yank-replace)))
 
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
@@ -769,16 +763,17 @@
 (use-package yaml-mode
   :ensure t)
 
+(defun lsp-format-and-organize-imports ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
 (use-package lsp-mode
   :ensure t
   :hook
   ;; go
   ((go-mode . lsp-deferred)
+   (go-mode . lsp-format-and-organize-imports)
    (tsx-ts-mode . lsp-deferred)))
-
-(defun lsp-format-and-organize-imports ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
 (use-package go-mode
   :ensure t)

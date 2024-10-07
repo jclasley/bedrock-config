@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: test this ginkgo
+# key: testthis
+# --
+
+func TestThis(t *testing.T) {
+	 RegisterFailHandler(AbortSuite)
+	 RunSpecs(t, "")
+}
