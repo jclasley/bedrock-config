@@ -162,9 +162,6 @@
   (blink-cursor-mode -1)                                ; Steady cursor
   (pixel-scroll-precision-mode)                         ; Smooth scrolling
 
-  ;; Use common keystrokes by default
-  (cua-mode)
-
   ;; Display line numbers in programming mode
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
   (setopt display-line-numbers-width 3)           ; Set a minimum width
@@ -186,11 +183,6 @@
   (setopt tab-bar-show 1)
 
   ;; Add the time to the tab-bar, if visible
-  (add-to-list 'tab-bar-format 'tab-bar-format-align-right 'append)
-  (add-to-list 'tab-bar-format 'tab-bar-format-global 'append)
-  (setopt display-time-format "%a %F %T")
-  (setopt display-time-interval 1)
-  (display-time-mode)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;
@@ -285,9 +277,14 @@
   :ensure t
   :config (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
+(use-package nerd-icons
+  :ensure t)
+
 (use-package doom-modeline
   :ensure t
-  :config (doom-modeline-mode 1))
+  :config
+  (setq doom-modeline-minor-modes nil)
+  :init (doom-modeline-mode 1))
 
 (use-package emacs
   :custom
@@ -321,6 +318,12 @@
 
 (use-package origami
   :ensure t
+  :bind
+  (("C-c z z" . origami-forward-toggle-node)
+   ("C-c z C" . origami-close-all-nodes)
+   ("C-c z O" . origami-open-all-nodes)
+   ("C-c z b" . origami-previous-fold)
+   ("C-c z n" . origami-next-fold))
   :init (global-origami-mode))
 
 (keymap-set global-map "C-c w d" 'delete-window)
@@ -354,7 +357,8 @@
 (use-package ace-window
   :ensure t
   :bind
-  (("C-c w w" . ace-window)))
+  (("C-c w w" . ace-window)
+   ("C-c w u" . winner-undo)))
 
 (use-package avy
   :ensure t
@@ -573,18 +577,24 @@
       ([backtab] . corfu-previous))
   :init (global-corfu-mode -1))
 
+(defun search/dir ()
+  (interactive)
+  (let ((dir (file-name-directory (buffer-file-name))))
+    (consult-ripgrep dir)))
+
 (use-package consult
   :ensure t
   :bind
   ;; meow SPC x b
-  (("C-c s b" . consult-buffer)
+  (("C-c s b" . consult-project-buffer)
+   ("C-c s B" . consult-buffer)
    ("C-c s l" . consult-line)
    ("C-c s f" . consult-recent-file)
    ("C-c s o" . consult-outline)
    ("C-c s i" . consult-imenu)
-   ("C-c s p" . consult-project-buffer)
    ("C-c b" . consult-bookmark)
    ("C-c s r" . consult-ripgrep)
+   ("C-c s d" . search/dir)
    ("C-c s y" . consult-yank-replace)))
 
 ;; Enable rich annotations using the Marginalia package
@@ -606,7 +616,6 @@
 
 (use-package embark
   :ensure t
-
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
@@ -652,7 +661,7 @@
   (meow-motion-overwrite-define-key
    '("j" . meow-next)
    '("k" . meow-prev)
-   '("<escape>" . ignore))
+   '("<escape>" . meow-cancel-selection))
   (meow-leader-define-key
    ;; SPC j/k will run the original command in MOTION state.
    '("j" . "H-j")
@@ -731,14 +740,16 @@
    '("Y" . meow-sync-grab)
    '("z" . meow-pop-selection)
    '("'" . repeat)
-   '("<escape>" . ignore)))
+   '("<escape>" . meow-cancel-selection)))
 
 (use-package meow
   :ensure t
+  :chords
+  (("jk" . meow-insert-exit))
   :config
   (meow-setup)
+  (meow-setup-indicator)
   (setq meow-use-clipboard t)
-  (setq meow-keypad-self-insert-undefined nil)
   :init
   (meow-global-mode 1))
 
@@ -769,14 +780,34 @@
 
 (use-package lsp-mode
   :ensure t
+  :config
+  (setq lsp-headerline-breadcrumb-enable nil)
   :hook
   ;; go
   ((go-mode . lsp-deferred)
    (go-mode . lsp-format-and-organize-imports)
    (tsx-ts-mode . lsp-deferred)))
 
-(use-package go-mode
+(use-package lsp-ui
+  :ensure t
+  :config
+  (setq lsp-ui-doc-delay 1)
+  :bind
+  (:map lsp-ui-mode-map
+        ("M-." . lsp-ui-peek-find-definitions)
+        ("M-?" . lsp-ui-peek-find-references)))
+
+(use-package consult-lsp
   :ensure t)
+
+(use-package go-mode
+  :config
+  (setq lsp-go-use-gofumpt t)
+  :ensure t)
+
+(use-package flycheck-golangci-lint
+  :ensure t
+  :hook (go-mode . flycheck-golangci-lint-setup))
 
 (add-to-list 'auto-mode-alist '("\\.go" . go-mode))
 (add-to-list 'major-mode-remap-alist '(go-ts-mode . go-mode))
@@ -787,6 +818,13 @@
 
 (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
 (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
+
+(use-package apheleia
+  :ensure t
+  :init
+  (apheleia-global-mode 1))
+
+(add-hook 'yaml-mode-hook #'(lambda () (apheleia-mode -1)))
 
 (defun treemacs-git-project ()
 (if-let ((root (project-root (project-current t)))

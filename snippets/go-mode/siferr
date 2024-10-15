@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: siferr
+# key: siferr
+# --
+if err := $1; err != nil {
+   $0
+}
