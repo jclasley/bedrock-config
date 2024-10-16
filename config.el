@@ -162,9 +162,6 @@
   (blink-cursor-mode -1)                                ; Steady cursor
   (pixel-scroll-precision-mode)                         ; Smooth scrolling
 
-  ;; Use common keystrokes by default
-  (cua-mode)
-
   ;; Display line numbers in programming mode
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
   (setopt display-line-numbers-width 3)           ; Set a minimum width
@@ -184,13 +181,6 @@
 
   ;; Show the tab-bar as soon as tab-bar functions are invoked
   (setopt tab-bar-show 1)
-
-  ;; Add the time to the tab-bar, if visible
-  (add-to-list 'tab-bar-format 'tab-bar-format-align-right 'append)
-  (add-to-list 'tab-bar-format 'tab-bar-format-global 'append)
-  (setopt display-time-format "%a %F %T")
-  (setopt display-time-interval 1)
-  (display-time-mode)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;;;
@@ -310,6 +300,11 @@
             (car args))
     (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+
+(use-package kmacro
+  :config
+  (defalias 'kmacro-insert-macro 'insert-kbd-macro)
+  (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro))
 
 (use-package projectile
   :ensure t
@@ -557,9 +552,9 @@
         ;; use letters instead of icons
         company-format-margin-function #'company-text-icons-margin
         company-text-icons-add-background t)
+  ;; customize the annotation faces
   (custom-set-faces
    '(company-tooltip-annotation ((t (:foreground "dark gray")))))
-  ;; customize the anno
   :bind
   (:map company-active-map
         ([tab] . company-complete-common-or-cycle)
@@ -743,6 +738,7 @@
   :ensure t
   :config
   (meow-setup)
+  (meow-setup-indicator)
   (setq meow-use-clipboard t)
   (setq meow-keypad-self-insert-undefined nil)
   :init
@@ -792,6 +788,14 @@
 
 (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
 (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
+
+(use-package clojure-mode
+  :ensure t)
+
+(use-package paredit
+  :ensure t
+  :hook
+  (clojure-mode . paredit-mode))
 
 (defun treemacs-git-project ()
 (if-let ((root (project-root (project-current t)))
