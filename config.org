@@ -348,6 +348,14 @@ rainbow delimiters
     (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
 
+#+begin_src elisp
+  (use-package kmacro
+    :config
+    (defalias 'kmacro-insert-macro 'insert-kbd-macro)
+    (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro))
+#+end_src
+
+
 ** Projectile
 #+begin_src elisp
   (use-package projectile
@@ -358,6 +366,12 @@ rainbow delimiters
     (("C-c p" . #'projectile-command-map))
     :init (projectile-mode +1))
 #+end_src
+
+Dependencies for search
+#+begin_src elisp
+  (use-package ag :ensure t)
+#+end_src
+
 
 ** Origami -- nice folding
 #+begin_src elisp
@@ -577,6 +591,12 @@ Create the custom agenda command for super agenda
                                  "* TODO %?\nDEADLINE: %t")))
 #+end_src
 
+** Org brain
+#+begin_src elisp
+  (use-package org-brain
+    :ensure t)
+#+end_src
+
 
 ** Org roam
 #+begin_src elisp
@@ -666,12 +686,14 @@ Using tab-and-go completion style
           ;; use letters instead of icons
           company-format-margin-function #'company-text-icons-margin
           company-text-icons-add-background t)
+    ;; customize the annotation faces
     (custom-set-faces
      '(company-tooltip-annotation ((t (:foreground "dark gray")))))
     (append company-backends '(:with company-yasnippet))
     :bind
     (:map company-active-map
-          ([tab] . company-complete-common-or-cycle))
+          ([tab] . company-complete-common-or-cycle)
+          ("<escape>" . company-abort))
     :init
     (global-company-mode 1))
 #+end_src
@@ -1014,6 +1036,20 @@ Golangci-lint
   (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
   (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
 #+end_src
+
+*** Clojure mode
+#+begin_src elisp
+      (use-package clojure-mode
+        :ensure t)
+#+end_src
+
+Paredit is awesome
+#+begin_src elisp
+  (use-package paredit-mode
+    :hook
+    (clojure-mode . paredit-mode))
+#+end_src
+
 
 * Formatters
 

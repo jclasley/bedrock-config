@@ -308,6 +308,11 @@
     (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 
+(use-package kmacro
+  :config
+  (defalias 'kmacro-insert-macro 'insert-kbd-macro)
+  (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro))
+
 (use-package projectile
   :ensure t
   :config
@@ -315,6 +320,8 @@
   :bind
   (("C-c p" . #'projectile-command-map))
   :init (projectile-mode +1))
+
+(use-package ag :ensure t)
 
 (use-package origami
   :ensure t
@@ -489,6 +496,9 @@
                                (file +org-chores-file)
                                "* TODO %?\nDEADLINE: %t")))
 
+(use-package org-brain
+  :ensure t)
+
 (use-package org-roam
   :ensure t
   :config
@@ -552,12 +562,14 @@
         ;; use letters instead of icons
         company-format-margin-function #'company-text-icons-margin
         company-text-icons-add-background t)
+  ;; customize the annotation faces
   (custom-set-faces
    '(company-tooltip-annotation ((t (:foreground "dark gray")))))
   (append company-backends '(:with company-yasnippet))
   :bind
   (:map company-active-map
-        ([tab] . company-complete-common-or-cycle))
+        ([tab] . company-complete-common-or-cycle)
+        ("<escape>" . company-abort))
   :init
   (global-company-mode 1))
 
@@ -816,6 +828,13 @@
 
 (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
 (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
+
+(use-package clojure-mode
+  :ensure t)
+
+(use-package paredit-mode
+  :hook
+  (clojure-mode . paredit-mode))
 
 (use-package apheleia
   :ensure t
