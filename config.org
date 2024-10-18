@@ -892,8 +892,6 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 #+begin_src elisp
   (use-package meow
     :ensure t
-    :chords
-    (("jk" . meow-insert-exit))
     :config
     (meow-setup)
     (meow-setup-indicator)
@@ -974,7 +972,7 @@ Peek is awesome
 #+end_src
 
 *** Consult LSP
-
+Allow searching the LSP symbols with Consult
 #+begin_src elisp
     (use-package consult-lsp
       :ensure t)
@@ -1033,6 +1031,12 @@ Can always turn it on again with =M-x apheleia-mode=
 #+begin_src elisp
   (add-hook 'yaml-mode-hook #'(lambda () (apheleia-mode -1)))
 #+end_src
+
+JSON should have a =tab-width= of 2
+#+begin_src elisp
+  (add-hook 'js-json-mode-hook #'(lambda () (setq tab-width 2)) nil t)
+#+end_src
+
 
 
 * Helping

@@ -23,3 +23,7 @@
  '(company-tooltip-annotation ((t (:foreground "dark gray"))))
  '(match ((t (:background "plum1" :foreground "#282a36"))))
  '(region ((t (:extend nil :background "gray45")))))
+
+;; macro to input the branch name at the top of the commit message
+(defalias 'start\ commit\ msg
+  (kmacro "j j j j j e e e w E y [ b g p"))

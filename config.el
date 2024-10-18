@@ -744,8 +744,6 @@
 
 (use-package meow
   :ensure t
-  :chords
-  (("jk" . meow-insert-exit))
   :config
   (meow-setup)
   (meow-setup-indicator)
@@ -825,6 +823,8 @@
   (apheleia-global-mode 1))
 
 (add-hook 'yaml-mode-hook #'(lambda () (apheleia-mode -1)))
+
+(add-hook 'js-json-mode-hook #'(lambda () (setq tab-width 2)) nil t)
 
 (defun treemacs-git-project ()
 (if-let ((root (project-root (project-current t)))
