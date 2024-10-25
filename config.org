@@ -1032,6 +1032,26 @@ A function to search the current directory. If something is under point, suggest
 #+end_src
 
 * Meow
+Custom function to support surrounding a selection with something
+#+begin_src elisp
+  (defun meow-surround (start end char)
+    (interactive "r\ncSurround:")
+    (save-excursion
+      (goto-char start)
+      (insert char)
+      (goto-char (1+ end))
+      (insert (surround/matching char))))
+
+  (defun surround/matching (c)
+    (cond ((eq ?\( c) ?\))
+          ((eq ?\[ c) ?\])
+          ((eq ?\{ c) ?\})
+          ((eq ?\< c) ?\>)
+          (t c)))
+
+#+end_src
+
+
 Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/KEYBINDING_QWERTY.org][github]] 
 #+begin_src elisp
   (defun meow-setup ()
@@ -1106,6 +1126,7 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
      '("r" . meow-replace)
      '("R" . meow-swap-grab)
      '("s" . meow-kill)
+     '("S" . meow-surround)
      '("t" . meow-till)
      '("u" . meow-undo)
      '("U" . meow-undo-in-selection)
@@ -1121,7 +1142,6 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
      '("'" . repeat)
      '("<escape>" . meow-cancel-selection)))
 #+end_src
-
 
 #+begin_src elisp
   (use-package meow
