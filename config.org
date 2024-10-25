@@ -401,6 +401,8 @@ rainbow delimiters
 
 
 ** Project management
+
+*** Projectile
 Projectile segregates a lot of things based on the project we're in
 #+begin_src elisp
   (use-package projectile
@@ -413,21 +415,33 @@ Projectile segregates a lot of things based on the project we're in
     :init (projectile-mode +1))
 #+end_src
 
+*** Persp
+
 Perspective mode separates buffers and allows for quick switching
 #+begin_src elisp
-  (use-package perspective
-    :ensure t
-    :bind
-    (("C-x C-b" . persp-list-buffers)
-     :map persp-mode-map
-     ("C-c C-p '" . persp-switch-last)
-     ("C-c C-p C-s" . persp-switch)) ; or use a nicer switcher, see below
-    :custom
-    (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
-    :init
-    (persp-mode))
+    (use-package perspective
+      :ensure t
+      :bind
+      (("C-x C-b" . persp-list-buffers)
+       :map persp-mode-map
+       ("C-c C-p '" . persp-switch-last)
+       ("C-c C-p C-s" . persp-switch)
+       ("C-c C-p N" . my/new-persp)) ; or use a nicer switcher, see below
+      :custom
+      (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
+      :init
+      (persp-mode))
 #+end_src
 
+Custom function for creating an empty perspective
+#+begin_src elisp
+      (defun my/new-persp (name)
+        (interactive "SName: ")
+        (persp-new name))
+#+end_src
+
+
+*** Persp-projectile
 Integrate persp and projectile
 #+begin_src elisp
   (use-package persp-projectile
