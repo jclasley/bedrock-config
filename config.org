@@ -399,7 +399,8 @@ Projectile is one option, and it works great
   (use-package projectile
     :ensure t
     :config
-    (setq projectile-switch-project-action 'projectile-dired)
+    ;; open up a scratch buffer for the project
+    (setq projectile-switch-project-action 'persp-switch-to-scratch-buffer)
     :bind
     (("C-c p" . #'projectile-command-map))
     :init (projectile-mode +1))
