@@ -400,7 +400,7 @@ Projectile segregates a lot of things based on the project we're in
     :ensure t
     :config
     ;; open up a scratch buffer for the project
-    (setq projectile-switch-project-action 'persp-switch-to-scratch-buffer)
+    (setq projectile-switch-project-action 'projectile-dired)
     :bind
     (("C-c p" . #'projectile-command-map))
     :init (projectile-mode +1))
@@ -411,7 +411,10 @@ Perspective mode separates buffers and allows for quick switching
   (use-package perspective
     :ensure t
     :bind
-    (("C-x C-b" . persp-list-buffers)) ; or use a nicer switcher, see below
+    (("C-x C-b" . persp-list-buffers)
+     :map persp-mode-map
+     ("C-c C-p '" . persp-switch-last)
+     ("C-c C-p C-s" . persp-switch)) ; or use a nicer switcher, see below
     :custom
     (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
     :init
