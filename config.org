@@ -394,7 +394,7 @@ rainbow delimiters
 
 
 ** Project management
-Projectile is one option, and it works great
+Projectile segregates a lot of things based on the project we're in
 #+begin_src elisp
   (use-package projectile
     :ensure t
@@ -406,7 +406,7 @@ Projectile is one option, and it works great
     :init (projectile-mode +1))
 #+end_src
 
-Perspective mode is another option that integrates a little better with treemacs IMO
+Perspective mode separates buffers and allows for quick switching
 #+begin_src elisp
   (use-package perspective
     :ensure t
