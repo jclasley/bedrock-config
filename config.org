@@ -102,6 +102,7 @@
     (use-package which-key
       :ensure t
       :config
+      (setq which-key-keymap-history t)
       (which-key-mode))
 
 
@@ -254,8 +255,38 @@ Turn off the damn bell
 
 Pretty much always want tab width to be 2
 #+begin_src elisp
-  (setopt tab-width 4)
+  (setq tab-width 4)
 #+end_src
+
+* Keymaps
+Make some keymaps for nice viewing
+Convenience function for making outer and inner keymaps
+#+begin_src elisp
+  (defun my/make-keymap (name)
+    (let ((map-name (concat name "-map"))
+          (preds '("outer/" "inner/"))
+          maps)
+      (dolist (el preds maps)
+        (setq maps (cons (concat el map-name) maps)))
+      maps))
+
+  (defmacro my/init-keymaps! (name)
+    (let ((names (make-keymap name))
+          form)
+      (dolist (el names form)
+        (setq form (append `(,(make-symbol el) (make-sparse-keymap)) form)))
+      `(setq ,@form)))
+#+end_src
+
+
+Consult
+#+begin_src elisp
+    (setq outer/consult-map (make-sparse-keymap)
+          inner/consult-map (make-sparse-keymap))
+    (define-key outer/consult-map "C-c s" '("consult" . inner/consult-map))
+#+end_src
+
+
 
 * General packages
 Turn off company mode, it interferes with ~corfu~
@@ -356,7 +387,8 @@ rainbow delimiters
 #+end_src
 
 
-** Projectile
+** Project management
+Projectile is one option, and it works great
 #+begin_src elisp
   (use-package projectile
     :ensure t
@@ -366,6 +398,28 @@ rainbow delimiters
     (("C-c p" . #'projectile-command-map))
     :init (projectile-mode +1))
 #+end_src
+
+Perspective mode is another option that integrates a little better with treemacs IMO
+#+begin_src elisp
+  (use-package perspective
+    :ensure t
+    :bind
+    (("C-x C-b" . persp-list-buffers)) ; or use a nicer switcher, see below
+    :custom
+    (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
+    :init
+    (persp-mode))
+#+end_src
+
+Integrate persp and projectile
+#+begin_src elisp
+          (use-package persp-projectile
+            :ensure t
+            :bind
+            (("C-c p" . projectile-persp-switch-project)))
+#+end_src
+
+
 
 Dependencies for search
 #+begin_src elisp
@@ -418,13 +472,23 @@ Delete a window more easily
   (use-package treemacs
     :ensure t
     :config
-    (setq treemacs-follow-mode t))
+    (setq treemacs-project-follow-mode t
+          treemacs-display-current-project-exclusively t))
 #+end_src
+
+Since we use projectile, use the projectile extension
+#+begin_src elisp
+  (use-package treemacs-projectile
+    :after (treemacs projectile)
+    :ensure t)
+#+end_src
+
 
 *** eyebrowse
 #+begin_src elisp
   (use-package eyebrowse
     :ensure t
+    :disabled
     :init (eyebrowse-mode 1))
 #+end_src
 
@@ -446,6 +510,15 @@ Delete a window more easily
     (("C-c a l" . avy-goto-line)
      ("C-c a c" . avy-goto-char-timer)))
 #+end_src
+
+** Jumping
+better-jumper [[https://github.com/gilbertw1/better-jumper][reference]]
+#+begin_src elisp
+  (use-package better-jumper
+    :ensure t
+    :init (better-jumper-mode +1))
+#+end_src
+
 
 * Org
 
@@ -569,32 +642,42 @@ Create the custom agenda command for super agenda
 
 ** Templates
 #+begin_src elisp
-  (setq org-capture-templates '(("a" "Agenda")
-                                ("ad" "Deadline" entry
-                                 (file+olp+datetree +org-capture-agenda-file)
-                                 "* %?\nDEADLINE: %^{at}t")
-                                ("t" "Todos")
-                                ("tt" "project todo" entry
-                                 (file "~/org/projects.org")
-                                 "* TODO %?\n%i")
-                                ("tn" "today" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\n%t")
-                                ("td" "deadline" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\nDEADLINE: %^{at}t")
-                                ("ts" "scheduled" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\nSCHEDULED: %^{at}t")
-                                ("c" "chore" entry
-                                 (file +org-chores-file)
-                                 "* TODO %?\nDEADLINE: %t")))
+                  (setq org-capture-templates '(("a" "Agenda")
+                                                ("ad" "Deadline" entry
+                                                 (file+olp+datetree +org-capture-agenda-file)
+                                                 "* %?\nDEADLINE: %^{at}t")
+                                                ("t" "Todos")
+                                                ("tt" "project todo" entry
+                                                 (file "~/org/projects.org")
+                                                 "* TODO %?\n%i")
+                                                ("tn" "today" entry
+                                                 (file+headline "~/org/todo.org" "Todos")
+                                                 "* TODO %?\n%t")
+                                                ("td" "deadline" entry
+                                                 (file+headline "~/org/todo.org" "Todos")
+                                                 "* TODO %?\nDEADLINE: %^{at}t")
+                                                ("ts" "scheduled" entry
+                                                 (file+headline "~/org/todo.org" "Todos")
+                                                 "* TODO %?\nSCHEDULED: %^{at}t")
+                                                ("c" "chore" entry
+                                                 (file +org-chores-file)
+                                                 "* TODO %?\nDEADLINE: %t")
+                                                ("n" "notes")
+                                                ("nd" "discussion" entry
+                                                 (file+datetree "~/org/discussions.org")
+                                                 "* %?"
+                                                 :tree-type month)
+                                                ("nn" "note" entry
+                                                 (file+datetree "~/org/notes.org")
+                                                 "* %?")))
 #+end_src
 
 ** Org brain
 #+begin_src elisp
   (use-package org-brain
-    :ensure t)
+    :ensure t
+    :bind
+    (("C-c o b" . org-brain-visualize)))
 #+end_src
 
 
@@ -734,16 +817,18 @@ A function to search the current directory. If something is under point, suggest
     :ensure t
     :bind
     ;; meow SPC x b
-    (("C-c s b" . consult-project-buffer)
-     ("C-c s B" . consult-buffer)
-     ("C-c s l" . consult-line)
-     ("C-c s f" . consult-recent-file)
-     ("C-c s o" . consult-outline)
-     ("C-c s i" . consult-imenu)
-     ("C-c b" . consult-bookmark)
-     ("C-c s r" . consult-ripgrep)
-     ("C-c s d" . search/dir)
-     ("C-c s y" . consult-yank-replace)))
+    ;; (:map inner/consult-map
+          (("C-c s b" . consult-project-buffer)
+          ("C-c s B" . consult-buffer)
+          ("C-c s l" . consult-line)
+          ("C-c s f" . consult-recent-file)
+          ("C-c s o" . consult-outline)
+          ("C-c s i" . consult-imenu)
+          ("C-c b" . consult-bookmark)
+          ("C-c t l" . consult-goto-line)
+          ("C-c s r" . consult-ripgrep)
+          ("C-c s d" . search/dir)
+          ("C-c s y" . consult-yank-replace)))
 #+end_src
 
 #+RESULTS:
@@ -807,10 +892,11 @@ A function to search the current directory. If something is under point, suggest
 
 * magit
 #+begin_src elisp
-  (use-package magit
-    :ensure t
-    :bind
-    (("C-M-g" . magit)))
+    (use-package magit
+      :ensure t
+      :bind
+      (("C-M-g" . magit)
+       ("C-M-b" . magit-branch)))
 #+end_src
 
 
@@ -906,6 +992,7 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
      '("y" . meow-save)
      '("Y" . meow-sync-grab)
      '("z" . meow-pop-selection)
+     '("C-o" . meow-pop-to-mark)
      '("'" . repeat)
      '("<escape>" . meow-cancel-selection)))
 #+end_src
@@ -1070,7 +1157,20 @@ Can always turn it on again with =M-x apheleia-mode=
 
 JSON should have a =tab-width= of 2
 #+begin_src elisp
-  (add-hook 'js-json-mode-hook #'(lambda () (setq tab-width 2)) nil t)
+    (add-hook 'js-json-mode-hook #'(lambda () (setq-local tab-width 2
+                                                          indent-tabs-mode nil)))
+#+end_src
+
+* Fun
+Nyan cat showing buffer position? Sure
+#+begin_src elisp
+            (use-package nyan-mode
+              :ensure t
+              :config
+              (setq nyan-animate-nyancat t
+                    nyan-bar-length 24)
+              :init
+              (nyan-mode 1))
 #+end_src
 
 
