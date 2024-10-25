@@ -279,11 +279,18 @@ Convenience function for making outer and inner keymaps
 #+end_src
 
 
-Consult
+** Consult
 #+begin_src elisp
-    (setq outer/consult-map (make-sparse-keymap)
-          inner/consult-map (make-sparse-keymap))
-    (define-key outer/consult-map "C-c s" '("consult" . inner/consult-map))
+  (setq my/consult-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c s") `("consult" . ,my/consult-map))
+  #+end_src
+
+  
+** Goto
+For things like =goto-line= or =goto-word=
+#+begin_src elisp
+(setq my/goto-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c t") `("goto" . ,my/goto-map))
 #+end_src
 
 
@@ -636,8 +643,9 @@ Use persp for treemacs too
   (use-package avy
     :ensure t
     :bind
-    (("C-c a l" . avy-goto-line)
-     ("C-c a c" . avy-goto-char-timer)))
+    (:map my/goto-map
+          ("l" . avy-goto-line)
+          ("c" . avy-goto-char-timer)))
 #+end_src
 
 ** Jumping
@@ -942,22 +950,23 @@ A function to search the current directory. If something is under point, suggest
 
 
 #+begin_src elisp
-  (use-package consult
-    :ensure t
-    :bind
-    ;; meow SPC x b
-    ;; (:map inner/consult-map
-          (("C-c s b" . consult-project-buffer)
-          ("C-c s B" . consult-buffer)
-          ("C-c s l" . consult-line)
-          ("C-c s f" . consult-recent-file)
-          ("C-c s o" . consult-outline)
-          ("C-c s i" . consult-imenu)
-          ("C-c b" . consult-bookmark)
-          ("C-c t l" . consult-goto-line)
-          ("C-c s r" . consult-ripgrep)
-          ("C-c s d" . search/dir)
-          ("C-c s y" . consult-yank-replace)))
+        (use-package consult
+          :ensure t
+          :bind
+          ;; meow SPC x b
+          (("C-c b" . consult-bookmark)
+           :map my/consult-map
+                (("b" . consult-project-buffer)
+                ("B" . consult-buffer)
+                ("l" . consult-line)
+                ("f" . consult-recent-file)
+                ("o" . consult-outline)
+                ("i" . consult-imenu)
+                ("r" . consult-ripgrep)
+                ("d" . search/dir)
+                ("y" . consult-yank-replace))
+                :map my/goto-map
+                (("L" . consult-goto-line))))
 #+end_src
 
 #+RESULTS:
