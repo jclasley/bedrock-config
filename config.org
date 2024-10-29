@@ -293,6 +293,12 @@ For things like =goto-line= or =goto-word=
   (define-key global-map (kbd "C-c t") `("goto" . ,my/goto-map))
 #+end_src
 
+** Windows
+Window management
+#+begin_src elisp
+  (setq my/window-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c w") `("windows" . ,my/window-map))
+#+end_src
 
 
 * General packages
@@ -464,10 +470,16 @@ Integrate persp and projectile
 #+end_src
 
 ** Windows
+
 Delete a window more easily
 #+begin_src elisp
-  (keymap-set global-map "C-c w d" 'delete-window)
+  (define-key my/window-map "d" '("delete" . delete-window))
 #+end_src
+
+#+begin_src elisp
+  (keymap-set my/window-map "m" '("maximize" . maximize-window))
+#+end_src
+
 
 
 *** popper
@@ -644,11 +656,12 @@ Use persp for treemacs too
 
 *** ace window
 #+begin_src elisp
-    (use-package ace-window
-      :ensure t
-      :bind
-      (("C-c w w" . ace-window)
-       ("C-c w u" . winner-undo)))
+  (use-package ace-window
+    :ensure t
+    :bind
+    (:map my/window-map
+          ("w" . ace-window)
+          ("u" . winner-undo)))
 #+end_src
 
 
@@ -659,7 +672,7 @@ Use persp for treemacs too
     :bind
     (:map my/goto-map
           ("l" . avy-goto-line)
-          ("c" . avy-goto-char-timer)))
+          ("t" . avy-goto-char-timer)))
 #+end_src
 
 ** Jumping
@@ -731,6 +744,13 @@ My tags and their font faces
     :init
     (add-hook 'org-mode-hook #'org-indent-mode))
 #+end_src
+
+A minor mode for presenting org (focusing)
+#+begin_src elisp
+    (use-package org-present
+      :ensure t)
+#+end_src
+
 
 ** Super agenda
 #+begin_src elisp
@@ -964,23 +984,25 @@ A function to search the current directory. If something is under point, suggest
 
 
 #+begin_src elisp
-        (use-package consult
-          :ensure t
-          :bind
-          ;; meow SPC x b
-          (("C-c b" . consult-bookmark)
-           :map my/consult-map
-                (("b" . consult-project-buffer)
-                ("B" . consult-buffer)
-                ("l" . consult-line)
-                ("f" . consult-recent-file)
-                ("o" . consult-outline)
-                ("i" . consult-imenu)
-                ("r" . consult-ripgrep)
-                ("d" . search/dir)
-                ("y" . consult-yank-replace))
-                :map my/goto-map
-                (("L" . consult-goto-line))))
+            (use-package consult
+              :ensure t
+              :bind
+              ;; meow SPC x b
+              (("C-c b" . consult-bookmark)
+               :map my/consult-map
+                    (("b" . consult-project-buffer)
+                    ("B" . consult-buffer)
+                    ("l" . consult-line)
+                    ("f" . consult-recent-file)
+                    ("o" . consult-outline)
+                    ("i" . consult-imenu)
+                    ("r" . consult-ripgrep)
+                    ("d" . search/dir)
+                    ("y" . consult-yank-replace))
+                    :map my/goto-map
+                    (("L" . consult-goto-line))
+                    :map my/window-map
+                    (("b" . consult-buffer-other-window))))
 #+end_src
 
 #+RESULTS:
@@ -1170,14 +1192,17 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 #+end_src
 
 #+begin_src elisp
-  (use-package meow
-    :ensure t
-    :config
-    (meow-setup)
-    (meow-setup-indicator)
-    (setq meow-use-clipboard t)
-    :init
-    (meow-global-mode 1))
+    (use-package meow
+      :ensure t
+      :config
+      (meow-setup)
+      (meow-setup-indicator)
+      (setq meow-use-clipboard t)
+      :bind
+      (:map meow-insert-state-keymap
+            ("M-SPC" . meow-keypad))
+      :init
+      (meow-global-mode 1))
 #+end_src
 
 * Languages
