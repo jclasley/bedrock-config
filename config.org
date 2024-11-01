@@ -262,20 +262,12 @@ Pretty much always want tab width to be 2
 Make some keymaps for nice viewing
 Convenience function for making outer and inner keymaps
 #+begin_src elisp
-  (defun my/make-keymap (name)
-    (let ((map-name (concat name "-map"))
-          (preds '("outer/" "inner/"))
-          maps)
-      (dolist (el preds maps)
-        (setq maps (cons (concat el map-name) maps)))
-      maps))
-
-  (defmacro my/init-keymaps! (name)
-    (let ((names (make-keymap name))
-          form)
-      (dolist (el names form)
-        (setq form (append `(,(make-symbol el) (make-sparse-keymap)) form)))
-      `(setq ,@form)))
+  (defmacro new-keymap (name binding)
+    `(progn
+       (setq ,(concat "my/" name "-map") (make-sparse-keymap))
+       (define-key global-map
+                   (kbd ,(concat "C-c " binding))
+                   (list (,name . ,(make-symbol (concat "my/" name "-map")))))))
 #+end_src
 
 
@@ -420,6 +412,14 @@ Projectile segregates a lot of things based on the project we're in
     (("C-c p" . #'projectile-command-map))
     :init (projectile-mode +1))
 #+end_src
+
+Add in the ability to group =ibuffer= buffers by their project
+#+begin_src elisp
+  ;; (use-package ibuffer-projectile
+  ;;   :ensure t
+  ;;   :hook (ibuffer-hook . ibuffer-projectile-set-filter-groups))
+#+end_src
+
 
 *** Persp
 
@@ -686,6 +686,12 @@ better-jumper [[https://github.com/gilbertw1/better-jumper][reference]]
 
 * Org
 
+Make a keymap for org
+#+begin_src elisp
+  (setq my/org-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c o") `("org" . ,my/org-map))
+#+end_src
+
 Tags for quickly setting
 #+begin_src elisp
   (setq org-tag-alist (append '((:startgroup . nil) ; at most one of the following
@@ -739,8 +745,9 @@ My tags and their font faces
     (setq org-agenda-start-day nil
           org-agenda-span 1)
     :bind
-    (("C-c o a" . org-agenda)
-     ("C-c o c" . org-capture))
+    (:map my/org-map
+          ("a" . org-agenda)
+          ("c" . org-capture))
     :init
     (add-hook 'org-mode-hook #'org-indent-mode))
 #+end_src
@@ -749,6 +756,12 @@ A minor mode for presenting org (focusing)
 #+begin_src elisp
     (use-package org-present
       :ensure t)
+#+end_src
+
+[[https://github.com/alphapapa/org-ql][org-ql]] makes searching org docs much easier
+#+begin_src elisp
+  (use-package org-ql
+    :ensure t)
 #+end_src
 
 
@@ -854,14 +867,21 @@ Create the custom agenda command for super agenda
 
 ** Org roam
 #+begin_src elisp
+  (setq my/org-roam-map (make-sparse-keymap))
+  (define-key my/org-map (kbd "r") `("roam" . ,my/org-roam-map))
+#+end_src
+
+
+#+begin_src elisp
   (use-package org-roam
     :ensure t
     :config
     (org-roam-db-autosync-mode 1)
     (setq org-roam-db-location "~/.config/emacs/.local/cache/org-roam.db")
     :bind
-    (("C-c o r i" . org-roam-node-insert)
-     ("C-c o r f" . org-roam-node-find)))
+    (:map my/org-roam-map
+          ("i" . org-roam-node-insert)
+          ("f" . org-roam-node-find)))
 #+end_src
 
 * yas
@@ -1192,18 +1212,21 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 #+end_src
 
 #+begin_src elisp
-    (use-package meow
-      :ensure t
-      :config
-      (meow-setup)
-      (meow-setup-indicator)
-      (setq meow-use-clipboard t)
-      :bind
-      (:map meow-insert-state-keymap
-            ("M-SPC" . meow-keypad))
-      :init
-      (meow-global-mode 1))
+  (use-package meow
+    :ensure t
+    :config
+    (meow-setup)
+    (meow-setup-indicator)
+    (setq meow-use-clipboard t)
+    :init
+    (meow-global-mode 1))
 #+end_src
+
+Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
+#+begin_src elisp
+  (define-key meow-insert-state-keymap (kbd "M-SPC") 'meow-keypad)
+#+end_src
+
 
 * Languages
 TODO: have to get xref working
@@ -1251,29 +1274,41 @@ Format and organize before saving
     (add-hook 'before-save-hook #'lsp-organize-imports t t))
 #+end_src
 
+Don't watch vendor dirs
+#+begin_src elisp
+    (defun lsp-ignore-vendor ()
+      (add-to-list lsp-file-watch-ignored-directories "[/\\\\]vendor"))
+#+end_src
+
+
 #+begin_src elisp
   (use-package lsp-mode
     :ensure t
     :config
-    (setq lsp-headerline-breadcrumb-enable nil)
+    (setq lsp-headerline-breadcrumb-enable nil
+          lsp-enable-file-watchers nil
+          ;; show warns in flycheck
+          lsp-diagnostics-flycheck-default-level 'warning)
     :hook
     ;; go
     ((go-mode . lsp-deferred)
      (go-mode . lsp-format-and-organize-imports)
+     ;; (go-mode . lsp-ignore-vendor)
      (tsx-ts-mode . lsp-deferred)))
 #+end_src
 
 *** LSP extensions
 Peek is awesome
 #+begin_src elisp
-  (use-package lsp-ui
-    :ensure t
-    :config
-    (setq lsp-ui-doc-delay 1)
-    :bind
-    (:map lsp-ui-mode-map
-          ("M-." . lsp-ui-peek-find-definitions)
-          ("M-?" . lsp-ui-peek-find-references)))
+    (use-package lsp-ui
+      :ensure t
+      :config
+      (setq lsp-ui-doc-delay 1
+            lsp-ui-sideline-show-code-actions t)
+      :bind
+      (:map lsp-ui-mode-map
+            ("M-." . lsp-ui-peek-find-definitions)
+            ("M-?" . lsp-ui-peek-find-references)))
 #+end_src
 
 *** Consult LSP
@@ -1319,6 +1354,15 @@ Golangci-lint
   (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
   (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
 #+end_src
+
+[[https://web-mode.org/][Web mode]] is sick
+#+begin_src elisp
+      (use-package web-mode
+        :ensure t
+        :config
+        (add-to-list 'auto-mode-alist '("\\.[tj]sx" . web-mode)))
+#+end_src
+
 
 *** Clojure mode
 #+begin_src elisp
