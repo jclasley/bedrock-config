@@ -379,7 +379,8 @@ rainbow delimiters
     (global-hl-line-mode -1)
     (hl-line-mode -1)
     (electric-pair-mode 1)
-    (setq scroll-conservatively 101)
+    (setq scroll-conservatively 101
+          word-wrap t) ;; when wrapping, use whitespace to wrap, not just anywhere
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
