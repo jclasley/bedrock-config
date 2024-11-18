@@ -294,12 +294,6 @@ Window management
 
 
 * General packages
-Turn off company mode, it interferes with ~corfu~
-#+begin_src elisp
-  ;; (global-company-mode -1)
-#+end_src
-
-
 Bring this in for use later
 #+begin_src elisp
   (use-package dash :ensure t)
@@ -1255,6 +1249,7 @@ TODO: have to get xref working
           (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
            "v0.20.3"
            "tsx/src"))
+          (elisp "https://github.com/Wilfred/tree-sitter-elisp")
           (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
           (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
 #+end_src
@@ -1283,19 +1278,19 @@ Don't watch vendor dirs
 
 
 #+begin_src elisp
-  (use-package lsp-mode
-    :ensure t
-    :config
-    (setq lsp-headerline-breadcrumb-enable nil
-          lsp-enable-file-watchers nil
-          ;; show warns in flycheck
-          lsp-diagnostics-flycheck-default-level 'warning)
-    :hook
-    ;; go
-    ((go-mode . lsp-deferred)
-     (go-mode . lsp-format-and-organize-imports)
-     ;; (go-mode . lsp-ignore-vendor)
-     (tsx-ts-mode . lsp-deferred)))
+    (use-package lsp-mode
+      :ensure t
+      :config
+      (setq lsp-headerline-breadcrumb-enable nil
+            lsp-enable-file-watchers nil
+            ;; show warns in flycheck
+            lsp-diagnostics-flycheck-default-level 'warning)
+      :hook
+      ;; go
+      ((go-mode . lsp-deferred)
+       (go-mode . lsp-format-and-organize-imports)
+       ;; (go-mode . lsp-ignore-vendor)
+       (tsx-ts-mode . lsp-deferred)))
 #+end_src
 
 *** LSP extensions
@@ -1377,6 +1372,60 @@ Paredit is awesome
     :hook
     (clojure-mode . paredit-mode))
 #+end_src
+
+** Swift
+*Disabled for now, development in Emacs just isn't it*
+
+Following [[https://www.swift.org/documentation/articles/zero-to-swift-emacs.html][this guide]] from the swift docs
+#+begin_src elisp
+  (use-package swift-mode
+    :ensure t
+    :disabled
+    :mode "\\.swift\\'"
+    :interpreter "swift"
+    :hook (swift-mode . (lambda () (lsp))))
+
+      ;;; Locate sourcekit-lsp
+  (defun find-sourcekit-lsp ()
+    (or (executable-find "sourcekit-lsp")
+        (and (eq system-type 'darwin)
+             (string-trim (shell-command-to-string "xcrun -f sourcekit-lsp")))
+        "/usr/local/swift/usr/bin/sourcekit-lsp"))
+    ;; sourcekit-lsp support
+  (use-package lsp-sourcekit
+    :disabled
+      :ensure t
+      :after lsp-mode
+      :config
+      (setq lsp-sourcekit-executable "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
+#+end_src
+
+[[https://github.com/danielmartin/swift-helpful][swift-helpful]] seems really nice
+#+begin_src elisp
+  (use-package swift-helpful :ensure t :disabled)
+#+end_src
+
+Company completions
+#+begin_src elisp
+  (use-package company-sourcekit
+    :disabled
+    :ensure t
+    :config
+    (add-to-list 'company-backends 'company-sourcekit))
+#+end_src
+
+Flycheck!
+#+begin_src elisp
+  (use-package flycheck-swift
+    :disabled
+    :ensure t
+    :after flycheck
+    :config
+    (flycheck-swift-setup))
+#+end_src
+
+
+
 
 
 * Formatters
