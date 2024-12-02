@@ -378,28 +378,29 @@ Highlight todos in prog mode derivatives
 ** Emacs customization
 
 #+begin_src elisp
-  (use-package emacs
-    :custom
-    (tab-always-indent 'complete)
-    ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-    ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-    ;; setting is useful beyond Corfu.
-    (read-extended-command-predicate #'command-completion-default-include-p)
-    (enable-recursive-minibuffers t)
-    :config
-    (electric-pair-mode 1)
-    ;; wrap on whitespace
-    (global-word-wrap-whitespace-mode 1)
-    (setq scroll-conservatively 101)
-    :init
-    (defun crm-indicator (args)
-      (cons (format "[CRM%s] %s"
-              (replace-regexp-in-string
-               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-               crm-separator)
-              (car args))
-      (cdr args)))
-    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+    (use-package emacs
+      :custom
+      (tab-always-indent 'complete)
+      ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+      ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+      ;; setting is useful beyond Corfu.
+      (read-extended-command-predicate #'command-completion-default-include-p)
+      (enable-recursive-minibuffers t)
+      :config
+      (electric-pair-mode 1)
+      ;; wrap on whitespace
+      (global-word-wrap-whitespace-mode 1)
+      (setq scroll-conservatively 101
+            line-spacing 3)
+      :init
+      (defun crm-indicator (args)
+        (cons (format "[CRM%s] %s"
+                (replace-regexp-in-string
+                 "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                 crm-separator)
+                (car args))
+        (cdr args)))
+      (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
 
 #+begin_src elisp
@@ -710,15 +711,6 @@ Use persp for treemacs too
 #+end_src
 
 
-** Jumping
-better-jumper [[https://github.com/gilbertw1/better-jumper][reference]]
-#+begin_src elisp
-  (use-package better-jumper
-    :ensure t
-    :init (better-jumper-mode +1))
-#+end_src
-
-
 * Org
 
 Make a keymap for org
@@ -918,6 +910,16 @@ Create the custom agenda command for super agenda
     (:map my/org-roam-map
           ("i" . org-roam-node-insert)
           ("f" . org-roam-node-find)))
+#+end_src
+
+
+* Hyperbole
+Hyperbole seems awesome
+Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
+
+#+begin_src elisp
+    (use-package hyperbole
+      :ensure t)
 #+end_src
 
 * yas
@@ -1343,8 +1345,7 @@ Peek is awesome
     (use-package lsp-ui
       :ensure t
       :config
-      (setq lsp-ui-doc-delay 1
-            lsp-ui-sideline-show-code-actions t)
+      (setq lsp-ui-doc-delay 1)
       :bind
       (:map lsp-ui-mode-map
             ("M-." . lsp-ui-peek-find-definitions)
@@ -1356,6 +1357,43 @@ Allow searching the LSP symbols with Consult
 #+begin_src elisp
     (use-package consult-lsp
       :ensure t)
+#+end_src
+
+*** lsp-booster
+Speed up JSON parsing in lsp mode
+[[https://github.com/blahgeek/emacs-lsp-booster?tab=readme-ov-file][Reference]]
+
+#+begin_src elisp
+  (defun lsp-booster--advice-json-parse (old-fn &rest args)
+  "Try to parse bytecode instead of json."
+  (or
+   (when (equal (following-char) ?#)
+     (let ((bytecode (read (current-buffer))))
+       (when (byte-code-function-p bytecode)
+         (funcall bytecode))))
+   (apply old-fn args)))
+(advice-add (if (progn (require 'json)
+                       (fboundp 'json-parse-buffer))
+                'json-parse-buffer
+              'json-read)
+            :around
+            #'lsp-booster--advice-json-parse)
+
+(defun lsp-booster--advice-final-command (old-fn cmd &optional test?)
+  "Prepend emacs-lsp-booster command to lsp CMD."
+  (let ((orig-result (funcall old-fn cmd test?)))
+    (if (and (not test?)                             ;; for check lsp-server-present?
+             (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
+             lsp-use-plists
+             (not (functionp 'json-rpc-connection))  ;; native json-rpc
+             (executable-find "emacs-lsp-booster"))
+        (progn
+          (when-let ((command-from-exec-path (executable-find (car orig-result))))  ;; resolve command from exec-path (in case not found in $PATH)
+            (setcar orig-result command-from-exec-path))
+          (message "Using emacs-lsp-booster for %s!" orig-result)
+          (cons "emacs-lsp-booster" orig-result))
+      orig-result)))
+(advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command)
 #+end_src
 
 
@@ -1416,6 +1454,14 @@ Paredit is awesome
     :hook
     (clojure-mode . paredit-mode))
 #+end_src
+
+Cider enables running a REPL in a project (among other things)
+Reference [[https://github.com/clojure-emacs/cider][here]]
+#+begin_src elisp
+    (use-package cider
+      :ensure t)
+#+end_src
+
 
 ** Swift
 *Disabled for now, development in Emacs just isn't it*
