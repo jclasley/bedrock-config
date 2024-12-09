@@ -113,7 +113,6 @@
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;; For help, see: https://www.masteringemacs.org/article/understanding-minibuffer-completion
-
     ;; (setopt enable-recursive-minibuffers t)                ; Use the minibuffer whilst in the minibuffer
     ;; (setopt completion-cycle-threshold 1)                  ; TAB cycles candidates
     ;; (setopt completions-detailed t)                        ; Show annotations
@@ -378,29 +377,32 @@ Highlight todos in prog mode derivatives
 ** Emacs customization
 
 #+begin_src elisp
-    (use-package emacs
-      :custom
-      (tab-always-indent 'complete)
-      ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-      ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-      ;; setting is useful beyond Corfu.
-      (read-extended-command-predicate #'command-completion-default-include-p)
-      (enable-recursive-minibuffers t)
-      :config
-      (electric-pair-mode 1)
-      ;; wrap on whitespace
-      (global-word-wrap-whitespace-mode 1)
-      (setq scroll-conservatively 101
-            line-spacing 3)
-      :init
-      (defun crm-indicator (args)
-        (cons (format "[CRM%s] %s"
-                (replace-regexp-in-string
-                 "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                 crm-separator)
-                (car args))
-        (cdr args)))
-      (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+  (use-package emacs
+    :custom
+    (tab-always-indent 'complete)
+    ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+    ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+    ;; setting is useful beyond Corfu.
+    (read-extended-command-predicate #'command-completion-default-include-p)
+    (enable-recursive-minibuffers t)
+    (line-spacing 3)
+    (scroll-conservatively 101)
+    :config
+    (electric-pair-mode 1)
+    ;; wrap on whitespace
+    (global-word-wrap-whitespace-mode 1)
+    ;; trying this out, let's see if I hate it
+    (auto-save-visited-mode 1)
+    (setq auto-save-timeout 3)
+    :init
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+              (replace-regexp-in-string
+               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+               crm-separator)
+              (car args))
+      (cdr args)))
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
 
 #+begin_src elisp
