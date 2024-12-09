@@ -375,32 +375,40 @@ Highlight todos in prog mode derivatives
     :init (doom-modeline-mode 1))
 #+end_src
 
+** Midnight mode
+Runs at midnight every day
+#+begin_src elisp
+  (midnight-mode 1)
+  (add-to-list 'clean-buffer-list-kill-regexps
+                 (rx buffer-start "magit-" (or "process" "diff")))
+#+end_src
+
 ** Emacs customization
 
 #+begin_src elisp
-    (use-package emacs
-      :custom
-      (tab-always-indent 'complete)
-      ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-      ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-      ;; setting is useful beyond Corfu.
-      (read-extended-command-predicate #'command-completion-default-include-p)
-      (enable-recursive-minibuffers t)
-      :config
-      (electric-pair-mode 1)
-      ;; wrap on whitespace
-      (global-word-wrap-whitespace-mode 1)
-      (setq scroll-conservatively 101
-            line-spacing 3)
-      :init
-      (defun crm-indicator (args)
-        (cons (format "[CRM%s] %s"
-                (replace-regexp-in-string
-                 "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                 crm-separator)
-                (car args))
-        (cdr args)))
-      (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+  (use-package emacs
+    :custom
+    (tab-always-indent 'complete)
+    ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+    ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+    ;; setting is useful beyond Corfu.
+    (read-extended-command-predicate #'command-completion-default-include-p)
+    (enable-recursive-minibuffers t)
+    :config
+    (electric-pair-mode 1)
+    ;; wrap on whitespace
+    (global-word-wrap-whitespace-mode 1)
+    (setq scroll-conservatively 101)
+    (setopt line-spacing 3)
+    :init
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+              (replace-regexp-in-string
+               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+               crm-separator)
+              (car args))
+      (cdr args)))
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
 
 #+begin_src elisp
@@ -409,7 +417,6 @@ Highlight todos in prog mode derivatives
     (defalias 'kmacro-insert-macro 'insert-kbd-macro)
     (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro))
 #+end_src
-
 
 ** Project management
 
@@ -1419,6 +1426,16 @@ Golangci-lint
   (add-to-list 'major-mode-remap-alist '(go-ts-mode . go-mode))
   (add-hook 'go-mode #'lsp-format-and-organize-imports)
 #+end_src
+
+go-eldoc
+#+begin_src elisp
+  (use-package go-eldoc
+    :ensure t
+    :disabled
+    :hook
+    (go-mode . go-eldoc-setup))
+#+end_src
+
 
 **** templ
 #+begin_src elisp
