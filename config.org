@@ -1,6 +1,5 @@
 
 * Bedrock stuff
-
 #+begin_src elisp
     ;;;  ________                                                _______                 __                            __
     ;;; /        |                                              /       \               /  |                          /  |
@@ -281,7 +280,7 @@ Convenience function for making outer and inner keymaps
 For things like =goto-line= or =goto-word=
 #+begin_src elisp
 (setq my/goto-map (make-sparse-keymap))
-  (define-key global-map (kbd "C-c t") `("goto" . ,my/goto-map))
+  (define-key global-map (kbd "C-c l") `("goto" . ,my/goto-map))
 #+end_src
 
 ** Windows
@@ -383,7 +382,6 @@ Runs at midnight every day
 #+end_src
 
 ** Emacs customization
-
 #+begin_src elisp
   (use-package emacs
     :custom
@@ -394,7 +392,10 @@ Runs at midnight every day
     (read-extended-command-predicate #'command-completion-default-include-p)
     (enable-recursive-minibuffers t)
     (line-spacing 3)
+    (desktop-save-mode 1)
     (scroll-conservatively 101)
+    (window-divider-default-right-width 1)
+    (window-divider-default-bottom-width 1)
     :config
     (electric-pair-mode 1)
     ;; wrap on whitespace
@@ -402,6 +403,7 @@ Runs at midnight every day
     ;; trying this out, let's see if I hate it
     (auto-save-visited-mode 1)
     (setq auto-save-timeout 3)
+    (menu-bar-bottom-and-right-window-divider)
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
@@ -427,6 +429,7 @@ Projectile segregates a lot of things based on the project we're in
 #+begin_src elisp
   (use-package projectile
     :ensure t
+    :disabled
     :config
     ;; open up a scratch buffer for the project
     (setq projectile-switch-project-action 'projectile-dired)
@@ -435,44 +438,64 @@ Projectile segregates a lot of things based on the project we're in
     :init (projectile-mode +1))
 #+end_src
 
-Add in the ability to group =ibuffer= buffers by their project
-#+begin_src elisp
-  ;; (use-package ibuffer-projectile
-  ;;   :ensure t
-  ;;   :hook (ibuffer-hook . ibuffer-projectile-set-filter-groups))
-#+end_src
-
-
 *** Persp
 
+**** Perspective
+
 Perspective mode separates buffers and allows for quick switching
+[[https://github.com/nex3/perspective-el][reference]]
 #+begin_src elisp
-    (use-package perspective
-      :ensure t
-      :bind
-      (("C-x C-b" . persp-list-buffers)
-       :map persp-mode-map
-       ("C-c C-p '" . persp-switch-last)
-       ("C-c C-p C-s" . persp-switch)
-       ("C-c C-p N" . my/new-persp)) ; or use a nicer switcher, see below
-      :custom
-      (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
-      :init
-      (persp-mode))
+  (use-package perspective
+    :disabled
+    :ensure t
+    :bind
+    (("C-x C-b" . persp-list-buffers)
+     :map persp-mode-map
+     ("C-c C-p '" . persp-switch-last)
+     ("C-c C-p C-s" . persp-switch)
+     ("C-c C-p N" . my/new-persp)) ; or use a nicer switcher, see below
+    :custom
+    (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
+    :init
+    (persp-mode))
 #+end_src
+
+
 
 Custom function for creating an empty perspective
 #+begin_src elisp
-      (defun my/new-persp (name)
-        (interactive "SName: ")
-        (persp-new name))
+  ;; (defun my/new-persp (name)
+  ;;   (interactive "SName: ")
+  ;;   (persp-new name))
 #+end_src
+
+**** persp-mode
+
+A fork of perspective
+[[https://github.com/Bad-ptr/persp-mode.el][Reference]]
+#+begin_src elisp
+  (use-package persp-mode
+    :ensure t
+    :disabled
+    :bind
+    (("C-x C-b" . persp-list-buffers)
+     :map persp-mode-map
+     ("C-c C-p '" . persp-switch-last)
+     ("C-c C-p C-s" . persp-switch)
+     ("C-c C-p N" . my/new-persp)) ; or use a nicer switcher, see below
+    :custom
+    (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
+    :init
+    (persp-mode))
+#+end_src
+
 
 
 *** Persp-projectile
 Integrate persp and projectile
 #+begin_src elisp
   (use-package persp-projectile
+    :disabled
     :ensure t
     :bind
     (("C-c p p" . projectile-persp-switch-project)))
@@ -535,7 +558,7 @@ Function to open up the projectile root
   (defun neotree-project-dir ()
     "Open NeoTree using the git root."
     (interactive)
-    (let ((project-dir (projectile-project-root))
+    (let ((project-dir (project-root (project-current)))
           (file-name (buffer-file-name)))
       (neotree-toggle)
       (if project-dir
@@ -672,7 +695,6 @@ Use persp for treemacs too
 #+begin_src elisp
   (use-package eyebrowse
     :ensure t
-    :disabled
     :init (eyebrowse-mode 1))
 #+end_src
 
@@ -927,8 +949,10 @@ Hyperbole seems awesome
 Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
 
 #+begin_src elisp
-    (use-package hyperbole
-      :ensure t)
+        (use-package hyperbole
+          :ensure t
+          :init
+          (hyperbole-mode 1))
 #+end_src
 
 * yas
@@ -1026,19 +1050,21 @@ Not using it for now, trying out company
 #+begin_src elisp
   (use-package corfu
     :ensure t
+    :disabled
     :custom
     (corfu-cycle t)
     (corfu-preselect 'prompt)
     :config
-    (setq corfu-auto t
-          corfu-auto-prefix 2)
     :bind
     (:map corfu-map
+          ("SPC" . corfu-insert-separator)
         ("TAB" . corfu-next)
         ([tab] . corfu-next)
         ("S-TAB" . corfu-previous)
         ([backtab] . corfu-previous))
-    :init (global-corfu-mode -1))
+    :init
+    (global-corfu-mode 1)
+    (corfu-popupinfo-mode))
 #+end_src
 ** Consult
 A function to search the current directory. If something is under point, suggest that as default
@@ -1147,7 +1173,9 @@ A function to search the current directory. If something is under point, suggest
 * vterm
 #+begin_src elisp
   (use-package vterm
-    :ensure t)
+    :ensure t
+    :bind
+    (("C-c v" . vterm)))
 #+end_src
 
 * Meow
