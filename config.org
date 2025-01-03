@@ -292,6 +292,12 @@ Window management
 
 
 * General packages
+Show keys pressed
+#+begin_src elisp
+  (use-package keycast :ensure t)
+#+end_src
+
+
 Bring this in for use later
 #+begin_src elisp
   (use-package dash :ensure t)
@@ -370,6 +376,8 @@ Highlight todos in prog mode derivatives
     :ensure t
     :config
     (setq doom-modeline-minor-modes nil)
+    :hook
+    (lsp-mode . (lambda () (setq-local doom-modeline-buffer-name nil)))
     :init (doom-modeline-mode 1))
 #+end_src
 
@@ -394,8 +402,11 @@ Runs at midnight every day
     (line-spacing 3)
     (desktop-save-mode 1)
     (scroll-conservatively 101)
+    ;; use a very narrow window divider
     (window-divider-default-right-width 1)
     (window-divider-default-bottom-width 1)
+    (scroll-bar-mode nil)
+    (ediff-window-setup-function #'ediff-setup-windows-plain)
     :config
     (electric-pair-mode 1)
     ;; wrap on whitespace
@@ -404,6 +415,9 @@ Runs at midnight every day
     (auto-save-visited-mode 1)
     (setq auto-save-timeout 3)
     (menu-bar-bottom-and-right-window-divider)
+    (scroll-bar-mode -1)
+    :bind
+    ("s-<return>" . recenter)
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
@@ -1030,12 +1044,15 @@ Using tab-and-go completion style
           company-files-exclusions '(".git/" ".DS_Store")
           ;; use letters instead of icons
           company-format-margin-function #'company-text-icons-margin
-          company-text-icons-add-background t)
+          company-text-icons-add-background t
+          ;; make it so that I do it myself, please
+          company-idle-delay 1)
     ;; customize the annotation faces
     (custom-set-faces
      '(company-tooltip-annotation ((t (:foreground "dark gray")))))
     (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
     :bind
+    ("M-i" . company-manual-begin)
     (:map company-active-map
           ([tab] . company-complete-common-or-cycle)
           ("<escape>" . company-abort))
@@ -1063,8 +1080,8 @@ Not using it for now, trying out company
         ("S-TAB" . corfu-previous)
         ([backtab] . corfu-previous))
     :init
-    (global-corfu-mode 1)
-    (corfu-popupinfo-mode))
+    (global-corfu-mode nil)
+    (corfu-popupinfo-mode nil))
 #+end_src
 ** Consult
 A function to search the current directory. If something is under point, suggest that as default
@@ -1364,7 +1381,7 @@ Don't watch vendor dirs
     (use-package lsp-mode
       :ensure t
       :config
-      (setq lsp-headerline-breadcrumb-enable nil
+      (setq lsp-headerline-breadcrumb-enable t
             lsp-enable-file-watchers nil
             ;; show warns in flycheck
             lsp-diagnostics-flycheck-default-level 'warning)
@@ -1465,6 +1482,15 @@ go-eldoc
     :hook
     (go-mode . go-eldoc-setup))
 #+end_src
+
+#+begin_src elisp
+  (use-package go-guru
+    :ensure t
+    :hook
+    (go-mode . go-guru-hl-identifier-mode))
+#+end_src
+
+
 
 
 **** templ
