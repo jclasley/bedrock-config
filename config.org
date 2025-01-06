@@ -407,7 +407,7 @@ Runs at midnight every day
     (window-divider-default-bottom-width 1)
     (scroll-bar-mode nil)
     (ediff-window-setup-function #'ediff-setup-windows-plain)
-    :config
+    :config 
     (electric-pair-mode 1)
     ;; wrap on whitespace
     (global-word-wrap-whitespace-mode 1)
@@ -416,6 +416,8 @@ Runs at midnight every day
     (setq auto-save-timeout 3)
     (menu-bar-bottom-and-right-window-divider)
     (scroll-bar-mode -1)
+    ;; font installed from https://www.jetbrains.com/lp/mono/
+    (add-to-list 'default-frame-alist '(font . "FiraCode Nerd Font Mono"))
     :bind
     ("s-<return>" . recenter)
     :init
@@ -435,6 +437,16 @@ Runs at midnight every day
     (defalias 'kmacro-insert-macro 'insert-kbd-macro)
     (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro))
 #+end_src
+
+*** tty mode
+=kkp.el= provides support for common escape sequences and reading of the super key (hopefully)
+#+begin_src elisp
+  (use-package kkp
+    :ensure t
+    :config
+    (global-kkp-mode 1))
+#+end_src
+
 
 ** Project management
 
@@ -1195,6 +1207,7 @@ A function to search the current directory. If something is under point, suggest
     (("C-c v" . vterm)))
 #+end_src
 
+
 * Meow
 Custom function to support surrounding a selection with something
 #+begin_src elisp
@@ -1654,4 +1667,5 @@ Nyan cat showing buffer position? Sure
 
   ;; (add-hook 'treemacs-post-buffer-init-hook #'treemacs-git-project)
 #+end_src
+
 
