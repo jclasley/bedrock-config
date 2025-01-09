@@ -419,7 +419,8 @@ Runs at midnight every day
     ;; font installed from https://www.jetbrains.com/lp/mono/
     (add-to-list 'default-frame-alist '(font . "FiraCode Nerd Font Mono"))
     :bind
-    ("s-<return>" . recenter)
+    ("C-<return>" . recenter)
+    ("M-<backspace>" . backward-kill-word)
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
@@ -446,6 +447,13 @@ Runs at midnight every day
     :config
     (global-kkp-mode 1))
 #+end_src
+
+Specific settings that we only want when in TTY
+#+begin_src elisp
+        (unless (display-graphic-p)
+          (menu-bar-mode -1))
+#+end_src
+
 
 
 ** Project management
@@ -737,12 +745,13 @@ Use persp for treemacs too
 
 ** Search
 #+begin_src elisp
-  (use-package avy
-    :ensure t
-    :bind
-    (:map my/goto-map
-          ("l" . avy-goto-line)
-          ("t" . avy-goto-char-timer)))
+    (use-package avy
+      :ensure t
+      :bind
+      (:map my/goto-map
+            ("l" . avy-goto-line)
+            ("t" . avy-goto-char-timer)
+            ("'" . avy-resume)))
 #+end_src
 
 #+begin_src elisp
@@ -1058,7 +1067,7 @@ Using tab-and-go completion style
           company-format-margin-function #'company-text-icons-margin
           company-text-icons-add-background t
           ;; make it so that I do it myself, please
-          company-idle-delay 1)
+          company-idle-delay 0.5)
     ;; customize the annotation faces
     (custom-set-faces
      '(company-tooltip-annotation ((t (:foreground "dark gray")))))
@@ -1320,14 +1329,15 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 #+end_src
 
 #+begin_src elisp
-  (use-package meow
-    :ensure t
-    :config
-    (meow-setup)
-    (meow-setup-indicator)
-    (setq meow-use-clipboard t)
-    :init
-    (meow-global-mode 1))
+    (use-package meow
+      :ensure t
+      :config
+      (meow-setup)
+      (meow-setup-indicator)
+      (setq meow-use-clipboard t
+            meow-keypad-self-insert-undefined nil)
+      :init
+      (meow-global-mode 1))
 #+end_src
 
 Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
@@ -1642,13 +1652,14 @@ JSON should have a =tab-width= of 2
 * Fun
 Nyan cat showing buffer position? Sure
 #+begin_src elisp
-            (use-package nyan-mode
-              :ensure t
-              :config
-              (setq nyan-animate-nyancat t
-                    nyan-bar-length 24)
-              :init
-              (nyan-mode 1))
+  (use-package nyan-mode
+    :ensure t
+    :config
+    ;; (setq nyan-animate-nyancat t
+    ;;       nyan-bar-length 24)
+    :init
+    (when (display-graphic-p)
+      (nyan-mode 1)))
 #+end_src
 
 
