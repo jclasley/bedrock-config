@@ -297,6 +297,20 @@ Show keys pressed
   (use-package keycast :ensure t)
 #+end_src
 
+Show indentation lines
+#+begin_src elisp
+    (use-package highlight-indent-guides
+      :ensure t
+      :hook
+      (prog-mode . highlight-indent-guides-mode)
+      :config
+      (setq highlight-indent-guides-method 'bitmap
+            highlight-indent-guides-auto-enabled nil)
+      (set-face-background 'highlight-indent-guides-odd-face "gray45")
+      (set-face-background 'highlight-indent-guides-even-face "gray45")
+      (set-face-foreground 'highlight-indent-guides-character-face "gray45"))
+#+end_src
+
 
 Bring this in for use later
 #+begin_src elisp
@@ -314,6 +328,17 @@ Icons
       :ensure t)
 #+end_src
 
+Lightning fast scrolling!
+[[https://github.com/jdtsmith/ultra-scroll][Ref]]
+#+begin_src elisp
+  (use-package ultra-scroll
+  ;:load-path "~/code/emacs/ultra-scroll" ; if you git clone'd instead of package-vc-install
+  :init
+  (setq scroll-conservatively 101 ; important!
+        scroll-margin 0) 
+  :config
+  (ultra-scroll-mode 1))
+#+end_src
 
 
 #+begin_src elisp
@@ -417,7 +442,7 @@ Runs at midnight every day
     (menu-bar-bottom-and-right-window-divider)
     (scroll-bar-mode -1)
     ;; font installed from https://www.jetbrains.com/lp/mono/
-    (add-to-list 'default-frame-alist '(font . "FiraCode Nerd Font Mono"))
+    (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
     :bind
     ("C-<return>" . recenter)
     ("M-<backspace>" . backward-kill-word)
@@ -1067,7 +1092,7 @@ Using tab-and-go completion style
           company-format-margin-function #'company-text-icons-margin
           company-text-icons-add-background t
           ;; make it so that I do it myself, please
-          company-idle-delay 0.5)
+          company-idle-delay 0.3)
     ;; customize the annotation faces
     (custom-set-faces
      '(company-tooltip-annotation ((t (:foreground "dark gray")))))
@@ -1289,6 +1314,7 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
      '("e" . meow-next-word)
      '("E" . meow-next-symbol)
      '("f" . meow-find)
+     '("F" . avy-goto-char-2)
      '("g" . meow-cancel-selection)
      '("G" . meow-grab)
      '("h" . meow-left)
@@ -1310,7 +1336,7 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
      '("Q" . meow-goto-line)
      '("r" . meow-replace)
      '("R" . meow-swap-grab)
-     '("s" . meow-kill)
+     '("s" . meow-kill) ;; just better
      '("S" . meow-surround)
      '("t" . meow-till)
      '("u" . meow-undo)
@@ -1516,6 +1542,12 @@ go-eldoc
     (go-mode . go-guru-hl-identifier-mode))
 #+end_src
 
+go-fill-struct is just realy nice
+Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
+#+begin_src elisp
+    (use-package go-fill-struct
+      :ensure t)
+#+end_src
 
 
 
