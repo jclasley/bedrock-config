@@ -276,10 +276,14 @@ Highlight todos in prog mode derivatives
 ** Midnight mode
 Runs at midnight every day
 #+begin_src elisp
-  (midnight-mode 1)
-  (add-to-list 'clean-buffer-list-kill-regexps
+
+    (midnight-mode 1)
+    ;; number of days before a buffer is eligible for killing
+    (setq clean-buffer-list-delay-general 1)
+    (add-to-list 'clean-buffer-list-kill-regexps
                  (rx buffer-start "magit-" (or "process" "diff")))
 #+end_src
+
 
 ** Emacs customization
 #+begin_src elisp
@@ -454,13 +458,24 @@ Integrate persp and projectile
 #+begin_src elisp
   (use-package centaur-tabs
     :ensure t
+    :bind
+    ("s-}" . centaur-tabs-forward)
+    ("s-{" . centaur-tabs-backward)
     :config
-    (setq 
-     centaur-tabs-set-icons t
-          centaur-tabs-icon-type 'all-the-icons)
+    (setq centaur-tabs-set-icons t
+          centaur-tabs-icon-type 'all-the-icons
+          centaur-tabs-style "bar"
+          centaur-tabs-height 30
+          centaur-tabs-set-bar 'left
+          centaur-tabs-set-close-button nil
+          centaur-tabs-show-new-tab-button nil
+          centaur-tabs-set-modified-marker t)
     (centaur-tabs-change-fonts "FiraCode Nerd Font Mono" 120)
     :init
-    (centaur-tabs-mode 1))
+    (centaur-tabs-mode 1)
+    :hook
+    ;; turn off centaur tabs in these modes
+    (dired-mode . centaur-tabs-local-mode))
 #+end_src
 
 ** Windows
@@ -620,7 +635,7 @@ Function to open up the projectile root
 
       (treemacs-hide-gitignored-files-mode nil))
     :bind
-    ("<f8>" .  treemacs-display-current-project-exclusively)
+    ("<f8>" .  treemacs-add-and-display-current-project-exclusively)
     (:map global-map
           ("M-0"       . treemacs-select-window)
           ("C-x t 1"   . treemacs-delete-other-windows)
@@ -630,6 +645,14 @@ Function to open up the projectile root
           ("C-x t C-t" . treemacs-find-file)
           ("C-x t M-t" . treemacs-find-tag)))
 #+end_src
+
+Use all-the-icons
+#+begin_src elisp
+  (use-package treemacs-all-the-icons
+    :after (treemacs)
+    :ensure t)
+#+end_src
+
 
 *** eyebrowse
 #+begin_src elisp
