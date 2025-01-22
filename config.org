@@ -548,6 +548,30 @@ Integrate persp and projectile
     :init (global-origami-mode))
 #+end_src
 
+** Icons
+#+begin_src elisp
+  (use-package all-the-icons
+  :if (display-graphic-p))
+
+  (use-package nerd-icons
+  :if (display-graphic-p))
+#+end_src
+
+
+** Tabs
+[[https://github.com/ema2159/centaur-tabs][Reference]]
+#+begin_src elisp
+  (use-package centaur-tabs
+    :ensure t
+    :config
+    (setq 
+     centaur-tabs-set-icons t
+          centaur-tabs-icon-type 'all-the-icons)
+    (centaur-tabs-change-fonts "FiraCode Nerd Font Mono" 120)
+    :init
+    (centaur-tabs-mode 1))
+#+end_src
+
 ** Windows
 
 Delete a window more easily
@@ -1329,15 +1353,22 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 #+end_src
 
 #+begin_src elisp
-    (use-package meow
-      :ensure t
-      :config
-      (meow-setup)
-      (meow-setup-indicator)
-      (setq meow-use-clipboard t
-            meow-keypad-self-insert-undefined nil)
-      :init
-      (meow-global-mode 1))
+  (use-package meow
+    :ensure t
+    :config
+    (meow-setup)
+    (meow-setup-indicator)
+    (setq meow-use-clipboard t
+          meow-keypad-self-insert-undefined nil)
+    :init
+    (meow-global-mode 1))
+
+  ;; only way I have found to have the keychord go and not screw up the map made in #'meow-setup
+  (use-package meow
+    :defer t
+    :chords
+    (:map meow-insert-state-keymap
+          ("jk" . meow-insert-exit)))
 #+end_src
 
 Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
