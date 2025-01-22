@@ -1,72 +1,18 @@
 
 * Bedrock stuff
 #+begin_src elisp
-    ;;;  ________                                                _______                 __                            __
-    ;;; /        |                                              /       \               /  |                          /  |
-    ;;; $$$$$$$$/ _____  ____   ______   _______  _______       $$$$$$$  | ______   ____$$ | ______   ______   _______$$ |   __
-    ;;; $$ |__   /     \/    \ /      \ /       |/       |      $$ |__$$ |/      \ /    $$ |/      \ /      \ /       $$ |  /  |
-    ;;; $$    |  $$$$$$ $$$$  |$$$$$$  /$$$$$$$//$$$$$$$/       $$    $$</$$$$$$  /$$$$$$$ /$$$$$$  /$$$$$$  /$$$$$$$/$$ |_/$$/
-    ;;; $$$$$/   $$ | $$ | $$ |/    $$ $$ |     $$      \       $$$$$$$  $$    $$ $$ |  $$ $$ |  $$/$$ |  $$ $$ |     $$   $$<
-    ;;; $$ |_____$$ | $$ | $$ /$$$$$$$ $$ \_____ $$$$$$  |      $$ |__$$ $$$$$$$$/$$ \__$$ $$ |     $$ \__$$ $$ \_____$$$$$$  \
-    ;;; $$       $$ | $$ | $$ $$    $$ $$       /     $$/       $$    $$/$$       $$    $$ $$ |     $$    $$/$$       $$ | $$  |
-    ;;; $$$$$$$$/$$/  $$/  $$/ $$$$$$$/ $$$$$$$/$$$$$$$/        $$$$$$$/  $$$$$$$/ $$$$$$$/$$/       $$$$$$/  $$$$$$$/$$/   $$/
-
-    ;;; Minimal init.el
-
-    ;;; Contents:
-    ;;;
-    ;;;  - Basic settings
-    ;;;  - Discovery aids
-    ;;;  - Minibuffer/completion settings
-    ;;;  - Interface enhancements/defaults
-    ;;;  - Tab-bar configuration
-    ;;;  - Theme
-    ;;;  - Optional extras
-    ;;;  - Built-in customization framework
-
-    ;;; Guardrail
-
     (when (< emacs-major-version 29)
       (error (format "Emacs Bedrock only works with Emacs 29 and newer; you have version ~a" emacs-major-version)))
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;in
-    ;;;
-    ;;;   Basic settings
-    ;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-    ;; Package initialization
-    ;;
-    ;; We'll stick to the built-in GNU and non-GNU ELPAs (Emacs Lisp Package
-    ;; Archive) for the base install, but there are some other ELPAs you could look
-    ;; at if you want more packages. MELPA in particular is very popular. See
-    ;; instructions at:
-    ;;
-    ;;    https://melpa.org/#/getting-started
-    ;;
-    ;; You can simply uncomment the following if you'd like to get started with
-    ;; MELPA packages quickly:
-    ;;
-    ;; (with-eval-after-load 'package
-    ;;   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
-
-    ;; If you want to turn off the welcome screen, uncomment this
-    ;(setopt inhibit-splash-screen t)
-
     (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
     (setopt display-time-default-load-average nil) ; this information is useless for most
 
-    ;; Automatically reread from disk if the underlying file changes
     (setopt auto-revert-avoid-polling t)
-    ;; Some systems don't do file notifications well; see
-    ;; https://todo.sr.ht/~ashton314/emacs-bedrock/11
     (setopt auto-revert-interval 5)
     (setopt auto-revert-check-vc-info t)
     (global-auto-revert-mode)
 
     ;; Save history of minibuffer
     (savehist-mode)
-
 
     ;; Fix archaic defaults
     (setopt sentence-end-double-space nil)
@@ -86,16 +32,7 @@
         (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
         backupFilePath))
     (setopt make-backup-file-name-function 'bedrock--backup-file-name)
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;;
-    ;;;   Discovery aids
-    ;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-    ;; Show the help buffer after startup
-
-    ;; (add-hook 'after-init-hook 'help-quick)
-
+  
     ;; which-key: shows a popup of available keybindings when typing a long key
     ;; sequence (e.g. C-x ...)
     (use-package which-key
@@ -105,42 +42,9 @@
       (which-key-mode))
 
 
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;;
-    ;;;   Minibuffer/completion settings
-    ;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-    ;; For help, see: https://www.masteringemacs.org/article/understanding-minibuffer-completion
-    ;; (setopt enable-recursive-minibuffers t)                ; Use the minibuffer whilst in the minibuffer
-    ;; (setopt completion-cycle-threshold 1)                  ; TAB cycles candidates
-    ;; (setopt completions-detailed t)                        ; Show annotations
-    ;; (setopt tab-always-indent 'complete)                   ; When I hit TAB, try to complete, otherwise, indent
-    ;; (setopt completion-styles '(basic initials substring)) ; Different styles to match input to candidates
-  ;; 
-    ;; (setopt completion-auto-help 'always)                  ; Open completion always; `lazy' another option
-    ;; (setopt completions-max-height 20)                     ; This is arbitrary
-    ;; (setopt completions-detailed t)
-    ;; (setopt completions-format 'one-column)
-    ;; (setopt completions-group t)
-    ;;
   (setopt completion-auto-select 'second-tab)            ; Much more eager
-    ;(setopt completion-auto-select t)                     ; See `C-h v completion-auto-select' for more possible values
 
     (keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete) ; TAB acts more like how it does in the shell
-
-    ;; For a fancier built-in completion option, try ido-mode,
-    ;; icomplete-vertical, or fido-mode. See also the file extras/base.el
-
-    ;(icomplete-vertical-mode)
-    ;(fido-vertical-mode)
-    ;(setopt icomplete-delay-completions-threshold 4000)
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;;
-    ;;;   Interface enhancements/defaults
-    ;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     ;; Mode line information
     (setopt line-number-mode t)                        ; Show current line in modeline
@@ -186,44 +90,6 @@
     (setopt tab-bar-show 1)
 
     ;; Add the time to the tab-bar, if visible
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;;
-    ;;;   Optional extras
-    ;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-    ;; Uncomment the (load-file …) lines or copy code from the extras/ elisp files
-    ;; as desired
-
-    ;; UI/UX enhancements mostly focused on minibuffer and autocompletion interfaces
-    ;; These ones are *strongly* recommended!
-    ;(load-file (expand-file-name "extras/base.el" user-emacs-directory))
-
-    ;; Packages for software development
-    ;(load-file (expand-file-name "extras/dev.el" user-emacs-directory))
-
-    ;; Vim-bindings in Emacs (evil-mode configuration)
-    ;(load-file (expand-file-name "extras/vim-like.el" user-emacs-directory))
-
-    ;; Org-mode configuration
-    ;; WARNING: need to customize things inside the elisp file before use! See
-    ;; the file extras/org-intro.txt for help.
-    ;(load-file (expand-file-name "extras/org.el" user-emacs-directory))
-
-    ;; Email configuration in Emacs
-    ;; WARNING: needs the `mu' program installed; see the elisp file for more
-    ;; details.
-    ;(load-file (expand-file-name "extras/email.el" user-emacs-directory))
-
-    ;; Tools for academic researchers
-    ;(load-file (expand-file-name "extras/researcher.el" user-emacs-directory))
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;;
-    ;;;   Built-in customization framework
-    ;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     (custom-set-variables
      ;; custom-set-variables was added by Custom.
@@ -299,16 +165,17 @@ Show keys pressed
 
 Show indentation lines
 #+begin_src elisp
-    (use-package highlight-indent-guides
-      :ensure t
-      :hook
-      (prog-mode . highlight-indent-guides-mode)
-      :config
-      (setq highlight-indent-guides-method 'bitmap
-            highlight-indent-guides-auto-enabled nil)
-      (set-face-background 'highlight-indent-guides-odd-face "gray45")
-      (set-face-background 'highlight-indent-guides-even-face "gray45")
-      (set-face-foreground 'highlight-indent-guides-character-face "gray45"))
+  (use-package highlight-indent-guides
+    :ensure t
+    :hook
+    (prog-mode . highlight-indent-guides-mode)
+    (yaml-mode . highlight-indent-guides-mode)
+    :config
+    (setq highlight-indent-guides-method 'bitmap
+          highlight-indent-guides-auto-enabled nil)
+    (set-face-background 'highlight-indent-guides-odd-face "gray45")
+    (set-face-background 'highlight-indent-guides-even-face "gray45")
+    (set-face-foreground 'highlight-indent-guides-character-face "gray45"))
 #+end_src
 
 
@@ -425,7 +292,6 @@ Runs at midnight every day
     (read-extended-command-predicate #'command-completion-default-include-p)
     (enable-recursive-minibuffers t)
     (line-spacing 3)
-    (desktop-save-mode 1)
     (scroll-conservatively 101)
     ;; use a very narrow window divider
     (window-divider-default-right-width 1)
@@ -584,6 +450,16 @@ Delete a window more easily
   (keymap-set my/window-map "m" '("maximize" . maximize-window))
 #+end_src
 
+*** Tabs
+#+begin_src elisp
+  (use-package centaur-tabs
+    :ensure t
+  :config
+  (centaur-tabs-mode t)
+  :bind
+  ("M-s-<left>" . centaur-tabs-backward)
+  ("M-s-<right>" . centaur-tabs-forward))
+#+end_src
 
 
 *** popper
@@ -630,6 +506,7 @@ Function to open up the projectile root
 
 #+begin_src elisp
   (use-package neotree
+    :disabled
     :ensure t
     :config
     (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
@@ -644,10 +521,6 @@ Function to open up the projectile root
   (use-package treemacs
     :ensure t
     :defer t
-    :disabled
-    :init
-    (with-eval-after-load 'winum
-      (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
     :config
     (progn
       (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
@@ -723,6 +596,7 @@ Function to open up the projectile root
 
       (treemacs-hide-gitignored-files-mode nil))
     :bind
+    ("<f8>" .  treemacs-display-current-project-exclusively)
     (:map global-map
           ("M-0"       . treemacs-select-window)
           ("C-x t 1"   . treemacs-delete-other-windows)
@@ -732,23 +606,6 @@ Function to open up the projectile root
           ("C-x t C-t" . treemacs-find-file)
           ("C-x t M-t" . treemacs-find-tag)))
 #+end_src
-
-Since we use projectile, use the projectile extension
-#+begin_src elisp
-  (use-package treemacs-projectile
-    :after (treemacs projectile)
-    :ensure t)
-#+end_src
-
-Use persp for treemacs too
-#+begin_src elisp
-  (use-package treemacs-persp ;;treemacs-perspective if you use perspective.el vs. persp-mode
-    :after (treemacs persp-mode) ;;or perspective vs. persp-mode
-    :ensure t
-    :config (treemacs-set-scope-type 'Perspectives))
-#+end_src
-
-
 
 *** eyebrowse
 #+begin_src elisp
@@ -1355,15 +1212,21 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 #+end_src
 
 #+begin_src elisp
-    (use-package meow
-      :ensure t
-      :config
-      (meow-setup)
-      (meow-setup-indicator)
-      (setq meow-use-clipboard t
-            meow-keypad-self-insert-undefined nil)
-      :init
-      (meow-global-mode 1))
+  (use-package meow
+    :ensure t
+    :config
+    (meow-setup)
+    (meow-setup-indicator)
+    (setq meow-use-clipboard t
+          meow-keypad-self-insert-undefined nil)
+    :init
+    (meow-global-mode 1))
+
+  (use-package meow
+    :defer t
+    :chords
+    (:map meow-insert-state-keymap
+          ("jk" . meow-insert-exit-hook)))
 #+end_src
 
 Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
@@ -1376,9 +1239,21 @@ Meow's keybindings don't like to be messed with (or at least I can't figure out 
 TODO: have to get xref working
 
 ** Flycheck
+Define a keymap for errors
+#+begin_src elisp
+  (setq my/errors-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c e") `("errors" . ,my/errors-map))
+#+end_src
+
 #+begin_src elisp
   (use-package flycheck
     :ensure t
+    :bind
+    (:map my/errors-map
+     ("n" . flycheck-next-error)
+     ("p" . flycheck-previous-error)
+     ("l" . flycheck-list-errors)
+     ("h" . display-local-help))
     :init (global-flycheck-mode))
 #+end_src
 
