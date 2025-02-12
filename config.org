@@ -117,11 +117,6 @@ Turn off the damn bell
   (setq ring-bell-function nil)
 #+end_src
 
-Pretty much always want tab width to be 2
-#+begin_src elisp
-  (setq tab-width 4)
-#+end_src
-
 * Keymaps
 Make some keymaps for nice viewing
 Convenience function for making outer and inner keymaps
@@ -158,6 +153,15 @@ Window management
 
 
 * General packages
+Sticky scroll! My own package 🥲
+#+begin_src elisp
+  ;; (use-package sticky-scroll-mode
+  ;;   :ensure t
+  ;;   :hook
+  ;;   (prog-mode . sticky-scroll-mode))
+#+end_src
+
+
 Show keys pressed
 #+begin_src elisp
   (use-package keycast :ensure t)
@@ -213,12 +217,11 @@ Lightning fast scrolling!
   (recentf-mode 1)
 
   (eldoc-mode 1)
-  ;; theme
-  (use-package dracula-theme
-    :config
-    (add-to-list 'custom-theme-load-path "~/bedrock/themes")
-    :init
-    (load-theme 'dracula t))
+#+end_src
+
+#+begin_src elisp
+
+
 
   (setq initial-buffer-choice "~/bedrock/config.org")
 
@@ -256,6 +259,36 @@ Highlight todos in prog mode derivatives
             ("DEPRECATED" font-lock-doc-face bold))))
 #+end_src
 
+** Theme
+Dracula (kinda mid comapared to doom-dracula)
+#+begin_src elisp
+    ;; theme
+  (use-package dracula-theme
+    :config
+    (add-to-list 'custom-theme-load-path "~/bedrock/themes")
+    :init
+  ;;   (load-theme 'dracula t)
+  )
+
+#+end_src
+
+Doom themes
+#+begin_src elisp
+  (use-package doom-themes
+  :ensure t
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-dracula t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; or for treemacs users
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+#+end_src
+
 
 ** Modeline
 #+begin_src elisp
@@ -286,6 +319,15 @@ Runs at midnight every day
 
 
 ** Emacs customization
+For some reason, ediff is behaving weirdly
+#+begin_src elisp
+    (use-package ediff
+  	:ensure nil
+  	:init
+  	(setq ediff-window-setup-function #'ediff-setup-windows-plain)
+  )
+#+end_src
+
 #+begin_src elisp
   (use-package emacs
     :custom
@@ -301,13 +343,12 @@ Runs at midnight every day
     (window-divider-default-right-width 1)
     (window-divider-default-bottom-width 1)
     (scroll-bar-mode nil)
-    (ediff-window-setup-function #'ediff-setup-windows-plain)
     :config 
     (electric-pair-mode 1)
     ;; wrap on whitespace
     (global-word-wrap-whitespace-mode 1)
     ;; trying this out, let's see if I hate it
-    (auto-save-visited-mode 1)
+    (auto-save-mode 1)
     (setq auto-save-timeout 3)
     (menu-bar-bottom-and-right-window-divider)
     (scroll-bar-mode -1)
@@ -316,6 +357,8 @@ Runs at midnight every day
     :bind
     ("C-<return>" . recenter)
     ("M-<backspace>" . backward-kill-word)
+    ("C-M-RET" . xref-find-references)
+    ("s-K" . kill-buffer-and-window)
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
@@ -456,26 +499,30 @@ Integrate persp and projectile
 ** Tabs
 [[https://github.com/ema2159/centaur-tabs][Reference]]
 #+begin_src elisp
-  (use-package centaur-tabs
-    :ensure t
-    :bind
-    ("s-}" . centaur-tabs-forward)
-    ("s-{" . centaur-tabs-backward)
-    :config
-    (setq centaur-tabs-set-icons t
-          centaur-tabs-icon-type 'all-the-icons
-          centaur-tabs-style "bar"
-          centaur-tabs-height 30
-          centaur-tabs-set-bar 'left
-          centaur-tabs-set-close-button nil
-          centaur-tabs-show-new-tab-button nil
-          centaur-tabs-set-modified-marker t)
-    (centaur-tabs-change-fonts "FiraCode Nerd Font Mono" 120)
-    :init
-    (centaur-tabs-mode 1)
-    :hook
-    ;; turn off centaur tabs in these modes
-    (dired-mode . centaur-tabs-local-mode))
+    (use-package centaur-tabs
+      :ensure t
+      :bind
+      ("s-}" . centaur-tabs-forward)
+      ("s-{" . centaur-tabs-backward)
+      ("M-s-<left>" . centaur-tabs-backward)
+      ("M-s-<right>" . centaur-tabs-forward)
+      :config
+      (setq centaur-tabs-set-icons t
+            centaur-tabs-icon-type 'all-the-icons
+            centaur-tabs-style "bar"
+            centaur-tabs-height 30
+            centaur-tabs-set-bar 'left
+            centaur-tabs-set-close-button nil
+            centaur-tabs-show-new-tab-button nil
+            centaur-tabs-cycle-scope 'tabs
+            centaur-tabs-set-modified-marker t)
+      (centaur-tabs-change-fonts "DroidSansMono Nerd Font" 120)
+      :init
+      (centaur-tabs-mode 1)
+      :hook
+      ;; turn off centaur tabs in these modes
+      (dired-mode . centaur-tabs-local-mode)
+      (vterm-mode . centaur-tabs-local-mode))
 #+end_src
 
 ** Windows
@@ -488,18 +535,6 @@ Delete a window more easily
 #+begin_src elisp
   (keymap-set my/window-map "m" '("maximize" . maximize-window))
 #+end_src
-
-*** Tabs
-#+begin_src elisp
-  (use-package centaur-tabs
-    :ensure t
-  :config
-  (centaur-tabs-mode t)
-  :bind
-  ("M-s-<left>" . centaur-tabs-backward)
-  ("M-s-<right>" . centaur-tabs-forward))
-#+end_src
-
 
 *** popper
 #+begin_src elisp
@@ -770,6 +805,8 @@ My tags and their font faces
     (:map my/org-map
           ("a" . org-agenda)
           ("c" . org-capture))
+    :hook
+    (org-mode . (lambda () (setq tab-width 8)))
     :init
     (add-hook 'org-mode-hook #'org-indent-mode))
 #+end_src
@@ -809,75 +846,86 @@ Create the custom agenda command for super agenda
                          (:name "Today"
                           :time-grid t
                           :date today)
-                         (:name "Important"
-                          :priority "A"
-                          :face (:weight ultra-bold :background "blue")
-                          :order 1)
                          (:name "Unstarted"
                           :scheduled past)
+                         (:discard (:anything t))
                          ))))
           (alltodo "" ((org-agenda-overriding-header "")
                        (org-super-agenda-groups
                         `((:log t)
-                          (:name "Important"
-                           :priority "A"
-                           :face (:weight ultra-bold :background "blue")
-                           :order 0)
+                         (:name "Important"
+                          :priority "A"
+                          :face (:weight ultra-bold :background "blue")
+                          :order 1)
                           (:name "Next"
                            :todo "NEXT"
-                           :order 2)
+                           :order 3)
                          (:name "Coming up"
-                                :scheduled future)
+                                :scheduled future
+                                :order 4)
                           (:name "In progress"
                            :todo "PROG"
-                           :order 1)
-                          (:name "Daphne"
-                           :tag "daphne")
-                          (:name "Chores"
-                           :file-path ,(expand-file-name +org-chores-file) ; back-quoted list allows evaluation with `,`
-                           :face (:slant italic)
                            :order 2)
                           (:name "Can wait"
-                           :priority "C")
+                           :priority "C"
+                           :order 5)
                           (:name "If time"
-                           :priority "B")
+                           :priority "B"
+                           :order 4)
+                          (:name "Blocked"
+                                 :todo "HOLD"
+                                 :order 100)
                           (:discard (:file-path ,(expand-file-name "~/org/bills.org")))
-                          (:discard (:anything t))
-                          (:discard (:file-path ,(expand-file-name "~/org/habits.org")))))))))))
+                          (:discard (:file-path ,(expand-file-name "~/org/habits.org")))
+                          (:discard (:anything t))))))))))
 #+end_src
 
 
 ** Templates
 #+begin_src elisp
-                  (setq org-capture-templates '(("a" "Agenda")
-                                                ("ad" "Deadline" entry
-                                                 (file+olp+datetree +org-capture-agenda-file)
-                                                 "* %?\nDEADLINE: %^{at}t")
-                                                ("t" "Todos")
-                                                ("tt" "project todo" entry
-                                                 (file "~/org/projects.org")
-                                                 "* TODO %?\n%i")
-                                                ("tn" "today" entry
-                                                 (file+headline "~/org/todo.org" "Todos")
-                                                 "* TODO %?\n%t")
-                                                ("td" "deadline" entry
-                                                 (file+headline "~/org/todo.org" "Todos")
-                                                 "* TODO %?\nDEADLINE: %^{at}t")
-                                                ("ts" "scheduled" entry
-                                                 (file+headline "~/org/todo.org" "Todos")
-                                                 "* TODO %?\nSCHEDULED: %^{at}t")
-                                                ("c" "chore" entry
-                                                 (file +org-chores-file)
-                                                 "* TODO %?\nDEADLINE: %t")
-                                                ("n" "notes")
-                                                ("nd" "discussion" entry
-                                                 (file+datetree "~/org/discussions.org")
-                                                 "* %?"
-                                                 :tree-type month)
-                                                ("nn" "note" entry
-                                                 (file+datetree "~/org/notes.org")
-                                                 "* %?")))
+  (setq org-capture-templates '(("a" "Agenda")
+  							  ("at" "TODO" entry
+  							   (file "~/org/agenda.org")
+  							   "* TODO %?"
+  							   :empty-lines-before 1)
+                                ("ad" "Deadline" entry
+                                 (file+olp+datetree "~/org/agenda.org")
+                                 "* %?\nDEADLINE: %^{at}t")
+                                ("t" "Todos")
+                                ("tt" "project todo" entry
+                                 (file "~/org/projects.org")
+                                 "* TODO %?\n%i"
+  							   :empty-lines-before 1)
+                                ("tf" "file todo" entry
+                                 (file "~/org/projects.org")
+                                 "* TODO %?\n%a"
+  							 :empty-lines-before 1)
+                                ("tn" "today" entry
+                                 (file+headline "~/org/todo.org" "Todos")
+                                 "* TODO %?\n%t"
+  							   :empty-lines-before 1)
+                                ("td" "deadline" entry
+                                 (file+headline "~/org/todo.org" "Todos")
+                                 "* TODO %?\nDEADLINE: %^{at}t"
+  							 :empty-lines-before 1)
+                                ("ts" "scheduled" entry
+                                 (file+headline "~/org/todo.org" "Todos")
+                                 "* TODO %?\nSCHEDULED: %^{at}t"
+  							   :empty-lines-before 1)
+                                ("c" "chore" entry
+                                 (file +org-chores-file)
+                                 "* TODO %?\nDEADLINE: %t"
+  							 :empty-lines-before 1)
+                                ("n" "notes")
+                                ("nd" "discussion" entry
+                                 (file+datetree "~/org/discussions.org")
+                                 "* %?"
+                                 :tree-type month)
+                                ("nn" "note" entry
+                                 (file+datetree "~/org/notes.org")
+                                 "* %?")))
 #+end_src
+
 
 ** Org brain
 #+begin_src elisp
@@ -904,8 +952,13 @@ Create the custom agenda command for super agenda
     :bind
     (:map my/org-roam-map
           ("i" . org-roam-node-insert)
+  		("l" . org-id-get-create)
+  		("b" . org-roam-buffer-toggle)
           ("f" . org-roam-node-find)))
 #+end_src
+
+#+RESULTS:
+: org-roam-node-find
 
 
 * Hyperbole
@@ -1432,14 +1485,30 @@ Also get go-mode
   (use-package go-mode
     :config
     (setq lsp-go-use-gofumpt t)
+    :bind
+    (:map go-mode-map
+    ("C-c C-d" . godoc-at-point))
     :ensure t)
 #+end_src
 
 Golangci-lint
 #+begin_src elisp
-  (use-package flycheck-golangci-lint
-    :ensure t
-    :hook (go-mode . flycheck-golangci-lint-setup))
+    (use-package flycheck-golangci-lint
+      :ensure t
+      :hook (go-mode . flycheck-golangci-lint-setup))
+
+    ;; required to make it work with lsp
+  ;; https://github.com/weijiangan/flycheck-golangci-lint/issues/8
+  (defvar-local flycheck-local-checkers nil)
+  (defun +flycheck-checker-get(fn checker property)
+    (or (alist-get property (alist-get checker flycheck-local-checkers))
+        (funcall fn checker property)))
+  (advice-add 'flycheck-checker-get :around '+flycheck-checker-get)
+
+
+(add-hook 'go-mode-hook (lambda()
+                            (flycheck-golangci-lint-setup)
+                            (setq flycheck-local-checkers '((lsp . ((next-checkers . (golangci-lint))))))))
 #+end_src
 
 
@@ -1515,58 +1584,6 @@ Reference [[https://github.com/clojure-emacs/cider][here]]
     (use-package cider
       :ensure t)
 #+end_src
-
-
-** Swift
-*Disabled for now, development in Emacs just isn't it*
-Following [[https://www.swift.org/documentation/articles/zero-to-swift-emacs.html][this guide]] from the swift docs
-#+begin_src elisp
-  (use-package swift-mode
-    :ensure t
-    :disabled
-    :mode "\\.swift\\'"
-    :interpreter "swift"
-    :hook (swift-mode . (lambda () (lsp))))
-
-      ;;; Locate sourcekit-lsp
-  (defun find-sourcekit-lsp ()
-    (or (executable-find "sourcekit-lsp")
-        (and (eq system-type 'darwin)
-             (string-trim (shell-command-to-string "xcrun -f sourcekit-lsp")))
-        "/usr/local/swift/usr/bin/sourcekit-lsp"))
-    ;; sourcekit-lsp support
-  (use-package lsp-sourcekit
-    :disabled
-      :ensure t
-      :after lsp-mode
-      :config
-      (setq lsp-sourcekit-executable "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"))
-#+end_src
-
-[[https://github.com/danielmartin/swift-helpful][swift-helpful]] seems really nice
-#+begin_src elisp
-  (use-package swift-helpful :ensure t :disabled)
-#+end_src
-
-Company completions
-#+begin_src elisp
-  (use-package company-sourcekit
-    :disabled
-    :ensure t
-    :config
-    (add-to-list 'company-backends 'company-sourcekit))
-#+end_src
-
-Flycheck!
-#+begin_src elisp
-  (use-package flycheck-swift
-    :disabled
-    :ensure t
-    :after flycheck
-    :config
-    (flycheck-swift-setup))
-#+end_src
-
 
 ** One-off languages (no LSP)
 =fsh= mode
