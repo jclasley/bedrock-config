@@ -162,11 +162,6 @@ Sticky scroll! My own package 🥲
 #+end_src
 
 
-Show keys pressed
-#+begin_src elisp
-  (use-package keycast :ensure t)
-#+end_src
-
 Show indentation lines
 #+begin_src elisp
   (use-package highlight-indent-guides
@@ -267,7 +262,7 @@ Dracula (kinda mid comapared to doom-dracula)
     :config
     (add-to-list 'custom-theme-load-path "~/bedrock/themes")
     :init
-  ;;   (load-theme 'dracula t)
+    (load-theme 'dracula t)
   )
 
 #+end_src
@@ -280,7 +275,7 @@ Doom themes
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-dracula t)
+  ;; (load-theme 'doom-dracula t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -319,14 +314,6 @@ Runs at midnight every day
 
 
 ** Emacs customization
-For some reason, ediff is behaving weirdly
-#+begin_src elisp
-    (use-package ediff
-  	:ensure nil
-  	:init
-  	(setq ediff-window-setup-function #'ediff-setup-windows-plain)
-  )
-#+end_src
 
 #+begin_src elisp
   (use-package emacs
@@ -337,6 +324,7 @@ For some reason, ediff is behaving weirdly
     ;; setting is useful beyond Corfu.
     (read-extended-command-predicate #'command-completion-default-include-p)
     (enable-recursive-minibuffers t)
+    ;; more comfort
     (line-spacing 3)
     (scroll-conservatively 101)
     ;; use a very narrow window divider
@@ -350,6 +338,7 @@ For some reason, ediff is behaving weirdly
     ;; trying this out, let's see if I hate it
     (auto-save-mode 1)
     (setq auto-save-timeout 3)
+    (setq ediff-window-setup-function #'ediff-setup-windows-plain)
     (menu-bar-bottom-and-right-window-divider)
     (scroll-bar-mode -1)
     ;; font installed from https://www.jetbrains.com/lp/mono/
@@ -359,6 +348,7 @@ For some reason, ediff is behaving weirdly
     ("M-<backspace>" . backward-kill-word)
     ("C-M-RET" . xref-find-references)
     ("s-K" . kill-buffer-and-window)
+    ("C-M-." . xref-find-definitions-other-window)
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
@@ -721,23 +711,167 @@ Use all-the-icons
 #+begin_src elisp
   (use-package rg
     :ensure t
+    :after meow
     :config
-    ; create a custom search in the menu to ignore vendor and test directories
+    
+    ;; put an option to ignore vendor files
+    (transient-insert-suffix 'rg-menu "-h" '(1 "-v" "No vendor" "--glob='!vendor/*'"))
+
+    ;; this is for the RESULTS buffer
+    ;; on by default, ignores vendor
+    (rg-define-toggle "--glob='!vendor/*'" "v" t)
+    ;; off by default, ignores test files
+    (rg-define-toggle "--glob='!*test.go' --glob='!it/*'" (kbd "C-c t"))
+    
     (rg-define-search search-ignore-vendor-test
       "Ignore vendor and test directories for the search"
       :query ask
       :files current ; use the current buffer's file type to find it
       :dir project
-      :flags ("--glob '!vendor/*'" "--glob '!*test*'")
-      :menu ("Search" "f" "Project (no vendor or test)"))
-    ;; (rg-define-search some-search
-    ;;   "Test"
-    ;;   :menu ("Search" "f" "Test!"))
-    ; create a custom flag in the results buffer to turn on/off vendor
-    (rg-define-toggle "--glob '!vendor/*'" "v")
+      :flags ("--glob '!vendor/*'" "--glob '!*test*'"))
+    
+    (rg-menu-transient-insert "Search" "f" "Project" 'search-ignore-vendor-test)
+    (rg-enable-default-bindings (kbd "C-c r")))
 
-    :bind
-    (("C-c r" . rg-menu)))
+#+end_src
+
+
+* Meow
+Custom function to support surrounding a selection with something
+#+begin_src elisp
+  (defun meow-surround (start end char)
+    (interactive "r\ncSurround:")
+    (save-excursion
+      (goto-char start)
+      (insert char)
+      (goto-char (1+ end))
+      (insert (surround/matching char))))
+
+  (defun surround/matching (c)
+    (cond ((eq ?\( c) ?\))
+          ((eq ?\[ c) ?\])
+          ((eq ?\{ c) ?\})
+          ((eq ?\< c) ?\>)
+          (t c)))
+#+end_src
+
+
+Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/KEYBINDING_QWERTY.org][github]] 
+#+begin_src elisp
+  (defun meow-setup ()
+    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+    (meow-motion-overwrite-define-key
+     '("j" . meow-next)
+     '("k" . meow-prev)
+     '("<escape>" . meow-cancel-selection))
+    (meow-leader-define-key
+     ;; SPC j/k will run the original command in MOTION state.
+     '("j" . "H-j")
+     '("k" . "H-k")
+     ;; Use SPC (0-9) for digit arguments.
+     '("1" . meow-digit-argument)
+     '("2" . meow-digit-argument)
+     '("3" . meow-digit-argument)
+     '("4" . meow-digit-argument)
+     '("5" . meow-digit-argument)
+     '("6" . meow-digit-argument)
+     '("7" . meow-digit-argument)
+     '("8" . meow-digit-argument)
+     '("9" . meow-digit-argument)
+     '("0" . meow-digit-argument)
+     '("/" . meow-keypad-describe-key)
+     '("?" . meow-cheatsheet))
+    (meow-normal-define-key
+     '("0" . meow-bexpand-0)
+     '("9" . meow-expand-9)
+     '("8" . meow-expand-8)
+     '("7" . meow-expand-7)
+     '("6" . meow-expand-6)
+     '("5" . meow-expand-5)
+     '("4" . meow-expand-4)
+     '("3" . meow-expand-3)
+     '("2" . meow-expand-2)
+     '("1" . meow-expand-1)
+     '("-" . negative-argument)
+     '(";" . meow-reverse)
+     '("," . meow-inner-of-thing)
+     '("." . meow-bounds-of-thing)
+     '("[" . meow-beginning-of-thing)
+     '("]" . meow-end-of-thing)
+     '("a" . meow-append)
+     '("A" . meow-open-below)
+     '("b" . meow-back-word)
+     '("B" . meow-back-symbol)
+     '("c" . meow-change)
+     '("d" . meow-delete)
+     '("D" . meow-backward-delete)
+     '("e" . meow-next-word)
+     '("E" . meow-next-symbol)
+     '("f" . meow-find)
+     '("F" . avy-goto-char-2)
+     '("g" . meow-cancel-selection)
+     '("G" . meow-grab)
+     '("h" . meow-left)
+     '("H" . meow-left-expand)
+     '("i" . meow-insert)
+     '("I" . meow-open-above)
+     '("j" . meow-next)
+     '("J" . meow-next-expand)
+     '("k" . meow-prev)
+     '("K" . meow-prev-expand)
+     '("l" . meow-right)
+     '("L" . meow-right-expand)
+     '("m" . meow-join)
+     '("n" . meow-search)
+     '("o" . meow-block)
+     '("O" . meow-to-block)
+     '("p" . meow-yank)
+     '("q" . meow-quit)
+     '("Q" . meow-goto-line)
+     '("r" . meow-replace)
+     '("R" . meow-swap-grab)
+     '("s" . meow-kill) ;; just better
+     '("S" . meow-surround)
+     '("t" . meow-till)
+     '("u" . meow-undo)
+     '("U" . meow-undo-in-selection)
+     '("v" . meow-visit)
+     '("w" . meow-mark-word)
+     '("W" . meow-mark-symbol)
+     '("x" . meow-line)
+     '("X" . meow-goto-line)
+     '("y" . meow-save)
+     '("Y" . meow-sync-grab)
+     '("z" . meow-pop-selection)
+     '("C-o" . meow-pop-to-mark)
+     '("'" . repeat)
+     '("<escape>" . meow-cancel-selection)))
+#+end_src
+
+#+begin_src elisp
+  (use-package meow
+    :ensure t
+    :config
+    (meow-setup)
+    (meow-setup-indicator)
+    (setq meow-use-clipboard t
+          meow-keypad-self-insert-undefined nil)
+    :init
+    (meow-global-mode 1))
+
+  ;; only way I ha
+  ;; ve found to have the keychord go and not screw up the map made in #'meow-setup
+  ;; ;
+  (use-package meow
+    :defer t
+    :chords
+    (:map meow-insert-state-keymap
+          ("jk" . meow-insert-exit)))
+#+end_src
+
+Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
+#+begin_src elisp
+  (define-key meow-insert-state-keymap (kbd "M-SPC") 'meow-keypad)
 #+end_src
 
 
@@ -966,10 +1100,11 @@ Hyperbole seems awesome
 Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
 
 #+begin_src elisp
-        (use-package hyperbole
-          :ensure t
-          :init
-          (hyperbole-mode 1))
+  (use-package hyperbole
+    :ensure t
+    :disabled t
+    :init
+    (hyperbole-mode 1))
 #+end_src
 
 * yas
@@ -990,21 +1125,21 @@ Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
 * Completion
 ** Vertico
 #+begin_src elisp
-  (use-package vertico
-    :after meow
-    :ensure t
-    :custom
-    (vertico-count 20) ;; Show more candidates
-    (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
-    (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
-    :config ; evaluated after the pkg loads
-    ;; (keymap-set vertico-map "TAB" #'vertico-next)
-    ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
-    :bind
-    (("C-c '" . vertico-repeat)
-     (:map vertico-map 
-           ("<escape>" . vertico-suspend)))
-    :init (vertico-mode 1))
+    (use-package vertico
+      :after meow
+      :ensure t
+      :custom
+      (vertico-count 20) ;; Show more candidates
+      (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
+      (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+      :config ; evaluated after the pkg loads
+      ;; (keymap-set vertico-map "TAB" #'vertico-next)
+      ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
+      :bind
+      (("C-c '" . vertico-repeat)
+       (:map vertico-map 
+             ("<escape>" . vertico-suspend)))
+      :init (vertico-mode 1))
 #+end_src
 
 *** Extensions
@@ -1199,143 +1334,6 @@ A function to search the current directory. If something is under point, suggest
 #+end_src
 
 
-* Meow
-Custom function to support surrounding a selection with something
-#+begin_src elisp
-  (defun meow-surround (start end char)
-    (interactive "r\ncSurround:")
-    (save-excursion
-      (goto-char start)
-      (insert char)
-      (goto-char (1+ end))
-      (insert (surround/matching char))))
-
-  (defun surround/matching (c)
-    (cond ((eq ?\( c) ?\))
-          ((eq ?\[ c) ?\])
-          ((eq ?\{ c) ?\})
-          ((eq ?\< c) ?\>)
-          (t c)))
-#+end_src
-
-
-Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/KEYBINDING_QWERTY.org][github]] 
-#+begin_src elisp
-  (defun meow-setup ()
-    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-    (meow-motion-overwrite-define-key
-     '("j" . meow-next)
-     '("k" . meow-prev)
-     '("<escape>" . meow-cancel-selection))
-    (meow-leader-define-key
-     ;; SPC j/k will run the original command in MOTION state.
-     '("j" . "H-j")
-     '("k" . "H-k")
-     ;; Use SPC (0-9) for digit arguments.
-     '("1" . meow-digit-argument)
-     '("2" . meow-digit-argument)
-     '("3" . meow-digit-argument)
-     '("4" . meow-digit-argument)
-     '("5" . meow-digit-argument)
-     '("6" . meow-digit-argument)
-     '("7" . meow-digit-argument)
-     '("8" . meow-digit-argument)
-     '("9" . meow-digit-argument)
-     '("0" . meow-digit-argument)
-     '("/" . meow-keypad-describe-key)
-     '("?" . meow-cheatsheet))
-    (meow-normal-define-key
-     '("0" . meow-bexpand-0)
-     '("9" . meow-expand-9)
-     '("8" . meow-expand-8)
-     '("7" . meow-expand-7)
-     '("6" . meow-expand-6)
-     '("5" . meow-expand-5)
-     '("4" . meow-expand-4)
-     '("3" . meow-expand-3)
-     '("2" . meow-expand-2)
-     '("1" . meow-expand-1)
-     '("-" . negative-argument)
-     '(";" . meow-reverse)
-     '("," . meow-inner-of-thing)
-     '("." . meow-bounds-of-thing)
-     '("[" . meow-beginning-of-thing)
-     '("]" . meow-end-of-thing)
-     '("a" . meow-append)
-     '("A" . meow-open-below)
-     '("b" . meow-back-word)
-     '("B" . meow-back-symbol)
-     '("c" . meow-change)
-     '("d" . meow-delete)
-     '("D" . meow-backward-delete)
-     '("e" . meow-next-word)
-     '("E" . meow-next-symbol)
-     '("f" . meow-find)
-     '("F" . avy-goto-char-2)
-     '("g" . meow-cancel-selection)
-     '("G" . meow-grab)
-     '("h" . meow-left)
-     '("H" . meow-left-expand)
-     '("i" . meow-insert)
-     '("I" . meow-open-above)
-     '("j" . meow-next)
-     '("J" . meow-next-expand)
-     '("k" . meow-prev)
-     '("K" . meow-prev-expand)
-     '("l" . meow-right)
-     '("L" . meow-right-expand)
-     '("m" . meow-join)
-     '("n" . meow-search)
-     '("o" . meow-block)
-     '("O" . meow-to-block)
-     '("p" . meow-yank)
-     '("q" . meow-quit)
-     '("Q" . meow-goto-line)
-     '("r" . meow-replace)
-     '("R" . meow-swap-grab)
-     '("s" . meow-kill) ;; just better
-     '("S" . meow-surround)
-     '("t" . meow-till)
-     '("u" . meow-undo)
-     '("U" . meow-undo-in-selection)
-     '("v" . meow-visit)
-     '("w" . meow-mark-word)
-     '("W" . meow-mark-symbol)
-     '("x" . meow-line)
-     '("X" . meow-goto-line)
-     '("y" . meow-save)
-     '("Y" . meow-sync-grab)
-     '("z" . meow-pop-selection)
-     '("C-o" . meow-pop-to-mark)
-     '("'" . repeat)
-     '("<escape>" . meow-cancel-selection)))
-#+end_src
-
-#+begin_src elisp
-  (use-package meow
-    :ensure t
-    :config
-    (meow-setup)
-    (meow-setup-indicator)
-    (setq meow-use-clipboard t
-          meow-keypad-self-insert-undefined nil)
-    :init
-    (meow-global-mode 1))
-
-  ;; only way I have found to have the keychord go and not screw up the map made in #'meow-setup
-  (use-package meow
-    :defer t
-    :chords
-    (:map meow-insert-state-keymap
-          ("jk" . meow-insert-exit)))
-#+end_src
-
-Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
-#+begin_src elisp
-  (define-key meow-insert-state-keymap (kbd "M-SPC") 'meow-keypad)
-#+end_src
-
-
 * Languages
 TODO: have to get xref working
 
@@ -1496,14 +1494,6 @@ Golangci-lint
     (use-package flycheck-golangci-lint
       :ensure t
       :hook (go-mode . flycheck-golangci-lint-setup))
-
-    ;; required to make it work with lsp
-  ;; https://github.com/weijiangan/flycheck-golangci-lint/issues/8
-  (defvar-local flycheck-local-checkers nil)
-  (defun +flycheck-checker-get(fn checker property)
-    (or (alist-get property (alist-get checker flycheck-local-checkers))
-        (funcall fn checker property)))
-  (advice-add 'flycheck-checker-get :around '+flycheck-checker-get)
 
 
 (add-hook 'go-mode-hook (lambda()
