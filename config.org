@@ -479,10 +479,18 @@ Integrate persp and projectile
 ** Icons
 #+begin_src elisp
   (use-package all-the-icons
-  :if (display-graphic-p))
+    :if (display-graphic-p))
+
+  ;; show icons in minibuffer!
+  (use-package all-the-icons-completion
+    :ensure t
+    :after (marginalia all-the-icons)
+    :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+    :init
+    (all-the-icons-completion-mode))
 
   (use-package nerd-icons
-  :if (display-graphic-p))
+    :if (display-graphic-p))
 #+end_src
 
 
@@ -713,6 +721,7 @@ Use all-the-icons
     :ensure t
     :after meow
     :config
+    ;; TODO -- suffix for not ignoring bitbucket vendors
     
     ;; put an option to ignore vendor files
     (transient-insert-suffix 'rg-menu "-h" '(1 "-v" "No vendor" "--glob='!vendor/*'"))
@@ -722,6 +731,7 @@ Use all-the-icons
     (rg-define-toggle "--glob='!vendor/*'" "v" t)
     ;; off by default, ignores test files
     (rg-define-toggle "--glob='!*test.go' --glob='!it/*'" (kbd "C-c t"))
+
     
     (rg-define-search search-ignore-vendor-test
       "Ignore vendor and test directories for the search"
@@ -1102,7 +1112,6 @@ Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
 #+begin_src elisp
   (use-package hyperbole
     :ensure t
-    :disabled t
     :init
     (hyperbole-mode 1))
 #+end_src
@@ -1123,31 +1132,49 @@ Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
 #+end_src 
 
 * Completion
+
+[[https://kristofferbalintona.me/posts/202202211546/#extensions][This post]] is a fantastic reference
+
 ** Vertico
 #+begin_src elisp
-    (use-package vertico
-      :after meow
-      :ensure t
-      :custom
-      (vertico-count 20) ;; Show more candidates
-      (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
-      (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
-      :config ; evaluated after the pkg loads
-      ;; (keymap-set vertico-map "TAB" #'vertico-next)
-      ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
-      :bind
-      (("C-c '" . vertico-repeat)
-       (:map vertico-map 
-             ("<escape>" . vertico-suspend)))
-      :init (vertico-mode 1))
+  (use-package vertico
+    :after meow
+    :ensure t
+    :custom
+    (vertico-count 20) ;; Show more candidates
+    (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
+    (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
+    :config ; evaluated after the pkg loads
+    ;; (keymap-set vertico-map "TAB" #'vertico-next)
+    ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
+    :bind
+    (("C-c '" . vertico-suspend)
+     (:map vertico-map 
+           ("<escape>" . vertico-suspend)
+  		 ("<tab>" . vertico-next)
+  	   ("C-i" . vertico-quick-insert)
+  	   ("C-o" . vertico-quick-exit)
+  	   ;; keeping these on so that I can test out which I like best for multiform modes
+  	   ("M-B" . vertico-multiform-buffer)
+  	   ("M-F" . vertico-multiform-flat)
+  	   ("M-G" . vertico-multiform-grid)
+  	   ("M-R" . vertico-multiform-reverse)
+  	   ("M-V" . vertico-multiform-vertical)
+  	   ("M-U" . vertico-multiform-unobtrusive)
+     ))
+    :init
+  (vertico-mode 1))
 #+end_src
+
+#+RESULTS:
+: vertico-multiform-unobtrusive
 
 *** Extensions
 #+begin_src elisp
   (use-package vertico-suspend
     :after vertico
     :ensure nil)
-
+  
   (use-package vertico-repeat
     :after vertico
     :ensure nil)
@@ -1156,9 +1183,39 @@ Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
     :after vertico
     :bind
     (:map vertico-map
-     ("M-DEL" . vertico-directory-delete-word)))
+     ("M-DEL" . vertico-directory-up)
+   ("RET" . vertico-directory-enter)))
 
 #+end_src
+
+#+RESULTS:
+: vertico-directory-enter
+
+*** Multiform
+Change the way vertico looks based on the command I'm using
+#+begin_src elisp
+  (use-package vertico-multiform
+    :after vertico
+    :ensure nil
+    :custom
+    (vertico-multiform-categories
+     '(
+  	 (consult-location buffer)
+  	 ))
+
+    (vertico-multiform-commands
+  	 '(
+  	   (consult-imenu buffer indexed)
+  	   (xref-find-references flat)
+  	   ))
+    :init
+    (vertico-multiform-mode)
+    )
+    
+#+end_src
+
+#+RESULTS:
+
 
 ** Orderless
 #+begin_src elisp
