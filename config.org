@@ -28,7 +28,7 @@
     If the new path's directories does not exist, create them."
       (let* ((backupRootDir "~/.emacs.d/emacs-backup/")
              (filePath (replace-regexp-in-string "[A-Za-z]:" "" fpath )) ; remove Windows driver letter in path
-             (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~") )))
+             (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~"))))
         (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
         backupFilePath))
     (setopt make-backup-file-name-function 'bedrock--backup-file-name)
@@ -952,8 +952,9 @@ Create the custom agenda command for super agenda
     :bind
     (:map my/org-roam-map
           ("i" . org-roam-node-insert)
-  		("l" . org-id-get-create)
-  		("b" . org-roam-buffer-toggle)
+        ("l" . org-id-get-create)
+        ("b" . org-roam-buffer-toggle)
+        ("c" . org-roam-capture)
           ("f" . org-roam-node-find)))
 #+end_src
 
