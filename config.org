@@ -548,11 +548,15 @@ Delete a window more easily
             "Output\\*$"
             "\\*Async Shell Command\\*"
             "*vterm*"
+  		  "*scratch*"
             help-mode
             compilation-mode))
     (popper-mode +1)
     (popper-echo-mode +1))   
 #+end_src
+
+#+RESULTS:
+: popper-kill-latest-popup
 
 *** NeoTree
 NeoTree is an alternative to treemacs
@@ -1206,6 +1210,8 @@ Change the way vertico looks based on the command I'm using
     (vertico-multiform-commands
   	 '(
   	   (consult-imenu buffer indexed)
+  	   (consult-project-buffer reverse)
+  	   
   	   (xref-find-references flat)
   	   ))
     :init
