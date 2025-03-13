@@ -331,6 +331,7 @@ Runs at midnight every day
     (window-divider-default-right-width 1)
     (window-divider-default-bottom-width 1)
     (scroll-bar-mode nil)
+    (xref-prompt-for-identifier nil)
     :config 
     (electric-pair-mode 1)
     ;; wrap on whitespace
@@ -533,6 +534,16 @@ Delete a window more easily
   (keymap-set my/window-map "m" '("maximize" . maximize-window))
 #+end_src
 
+*** popwin
+Basically just turns the annoying =*xref*= and =*Help*= buffers into popups of their own
+#+begin_src elisp
+  (use-package popwin
+    :ensure t
+    :init
+    (popwin-mode 1))
+#+end_src
+
+
 *** popper
 #+begin_src elisp
   (use-package popper
@@ -547,11 +558,15 @@ Delete a window more easily
             "Output\\*$"
             "\\*Async Shell Command\\*"
             "*vterm*"
+  		  "*scratch*"
             help-mode
             compilation-mode))
     (popper-mode +1)
     (popper-echo-mode +1))   
 #+end_src
+
+#+RESULTS:
+: popper-kill-latest-popup
 
 *** NeoTree
 NeoTree is an alternative to treemacs
@@ -1228,6 +1243,9 @@ Change the way vertico looks based on the command I'm using
     (vertico-multiform-commands
   	 '(
   	   (consult-imenu buffer indexed)
+  	   (consult-project-buffer reverse)
+  	   (find-file reverse)
+  	   
   	   (xref-find-references flat)
   	   ))
     :init
@@ -1254,6 +1272,7 @@ Using tab-and-go completion style
 *** Company
 #+begin_src elisp
   (use-package company
+    :disabled
     :ensure t
     :config
     (setq company-tooltip-align-annotations t
@@ -1274,7 +1293,7 @@ Using tab-and-go completion style
           ([tab] . company-complete-common-or-cycle)
           ("<escape>" . company-abort))
     :init
-    (global-company-mode 1))
+    (global-company-mode nil))
 #+end_src
 
 Company-box shows nice popups (and documentation) for selection candidates
@@ -1285,8 +1304,6 @@ Company-box shows nice popups (and documentation) for selection candidates
 #+end_src
 
 #+RESULTS:
-| company-box-mode | company-mode-set-explicitly |
-
 
 
 *** Corfu
@@ -1295,7 +1312,6 @@ Not using it for now, trying out company
 #+begin_src elisp
   (use-package corfu
     :ensure t
-    :disabled
     :custom
     (corfu-cycle t)
     (corfu-preselect 'prompt)
@@ -1308,8 +1324,8 @@ Not using it for now, trying out company
         ("S-TAB" . corfu-previous)
         ([backtab] . corfu-previous))
     :init
-    (global-corfu-mode nil)
-    (corfu-popupinfo-mode nil))
+    (global-corfu-mode 1)
+    (corfu-popupinfo-mode 1))
 #+end_src
 ** Consult
 A function to search the current directory. If something is under point, suggest that as default
@@ -1346,7 +1362,18 @@ A function to search the current directory. If something is under point, suggest
     (setq consult-narrow-key (kbd "<")))
 #+end_src
 
+Use consult-xref for xref! So great
+#+begin_src elisp
+  (use-package consult-xref
+    :ensure nil
+    :after consult
+    :config
+    (setq xref-show-xrefs-function #'consult-xref))
+#+end_src
+
 #+RESULTS:
+: t
+
 
 ** Marginalia
 #+begin_src elisp
@@ -1685,6 +1712,18 @@ Protocol buffer syntax highlighting
 #+begin_src elisp
   (use-package protobuf-mode :ensure t)
 #+end_src
+
+PKL
+[[https://github.com/sin-ack/pkl-mode][Reference]]
+#+begin_src elisp
+  (use-package pkl-mode
+    :vc (:url "https://github.com/sin-ack/pkl-mode" :rev :newest)
+  )
+#+end_src
+
+#+RESULTS:
+
+
 
 
 
