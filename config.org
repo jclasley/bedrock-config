@@ -262,7 +262,7 @@ Dracula (kinda mid comapared to doom-dracula)
     :config
     (add-to-list 'custom-theme-load-path "~/bedrock/themes")
     :init
-    (load-theme 'dracula t)
+    ;; (load-theme 'dracula t)
   )
 
 #+end_src
@@ -275,7 +275,7 @@ Doom themes
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;; (load-theme 'doom-dracula t)
+  (load-theme 'doom-dracula t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -335,8 +335,7 @@ Runs at midnight every day
     (electric-pair-mode 1)
     ;; wrap on whitespace
     (global-word-wrap-whitespace-mode 1)
-    ;; trying this out, let's see if I hate it
-    (auto-save-mode 1)
+    (auto-save-mode -1) ; turn off autosave
     (setq auto-save-timeout 3)
     (setq ediff-window-setup-function #'ediff-setup-windows-plain)
     (menu-bar-bottom-and-right-window-divider)
@@ -1073,11 +1072,33 @@ Create the custom agenda command for super agenda
 
 ** Org brain
 #+begin_src elisp
-  (use-package org-brain
-    :ensure t
-    :bind
-    (("C-c o b" . org-brain-visualize)))
+      (setq my/org-brain-map (make-sparse-keymap))
+      (define-key my/org-map (kbd "b") `("brain" . ,my/org-brain-map))
+
+
+  
+      (use-package org-brain
+        :ensure t
+        :bind
+        (:map my/org-brain-map
+              ("b" . org-brain-visualize)
+              ("l" . org-brain-get-id)))
 #+end_src
+
+Polymode is apparently nice to use with org-brain
+[[https://polymode.github.io/concepts/][Reference]]
+#+begin_src elisp
+    ;; Allows you to edit entries directly from org-brain-visualize
+  ;; (use-package polymode
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'org-brain-visualize-mode-hook #'org-brain-polymode)
+  ;;   )
+#+end_src
+
+#+RESULTS:
+: t
+
 
 
 ** Org roam
@@ -1255,6 +1276,17 @@ Using tab-and-go completion style
     :init
     (global-company-mode 1))
 #+end_src
+
+Company-box shows nice popups (and documentation) for selection candidates
+#+begin_src elisp
+  (use-package company-box
+    :ensure t
+    :hook (company-mode . company-box-mode))
+#+end_src
+
+#+RESULTS:
+| company-box-mode | company-mode-set-explicitly |
+
 
 
 *** Corfu
@@ -1459,19 +1491,21 @@ Don't watch vendor dirs
 
 
 #+begin_src elisp
-    (use-package lsp-mode
-      :ensure t
-      :config
-      (setq lsp-headerline-breadcrumb-enable t
-            lsp-enable-file-watchers nil
-            ;; show warns in flycheck
-            lsp-diagnostics-flycheck-default-level 'warning)
-      :hook
-      ;; go
-      ((go-mode . lsp-deferred)
-       (go-mode . lsp-format-and-organize-imports)
-       ;; (go-mode . lsp-ignore-vendor)
-       (tsx-ts-mode . lsp-deferred)))
+  (use-package lsp-mode
+    :ensure t
+    :config
+    (setq lsp-headerline-breadcrumb-enable t
+          lsp-enable-file-watchers nil
+          ;; show warns in flycheck
+          lsp-diagnostics-flycheck-default-level 'warning)
+    :hook
+    ;; go
+    ((go-mode . lsp-deferred)
+     (go-mode . lsp-format-and-organize-imports)
+     ;; (go-mode . lsp-ignore-vendor)
+     (tsx-ts-mode . lsp-deferred)
+     (rust-mode . lsp-deferred)
+     (go-mode . lsp-format-and-organize-imports)))
 #+end_src
 
 *** LSP extensions
@@ -1535,7 +1569,7 @@ Speed up JSON parsing in lsp mode
 #+end_src
 
 
-*** Go
+** Go
 Also get go-mode
 #+begin_src elisp
   (use-package go-mode
@@ -1591,14 +1625,22 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
 
 
 
-**** templ
+*** templ
 #+begin_src elisp
   (use-package templ-ts-mode
     :ensure t)
 #+end_src
 
 
-*** TSX
+** Rust
+#+begin_src elisp
+          (use-package rust-mode
+            :ensure t
+            :hook
+            (rust-mode . lsp-))
+#+end_src
+
+** TSX
 #+begin_src elisp
   (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
   (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
@@ -1613,7 +1655,7 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
 #+end_src
 
 
-*** Clojure mode
+** Clojure mode
 #+begin_src elisp
       (use-package clojure-mode
         :ensure t)
