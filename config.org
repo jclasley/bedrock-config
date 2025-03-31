@@ -1,115 +1,117 @@
-
 * Bedrock stuff
 #+begin_src elisp
-    (when (< emacs-major-version 29)
-      (error (format "Emacs Bedrock only works with Emacs 29 and newer; you have version ~a" emacs-major-version)))
-    (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
-    (setopt display-time-default-load-average nil) ; this information is useless for most
+       (when (< emacs-major-version 29)
+         (error (format "Emacs Bedrock only works with Emacs 29 and newer; you have version ~a" emacs-major-version)))
+       (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
+       (setopt display-time-default-load-average nil) ; this information is useless for most
 
-    (setopt auto-revert-avoid-polling t)
-    (setopt auto-revert-interval 5)
-    (setopt auto-revert-check-vc-info t)
-    (global-auto-revert-mode)
+       (setopt auto-revert-avoid-polling t)
+       (setopt auto-revert-interval 5)
+       (setopt auto-revert-check-vc-info t)
+       (global-auto-revert-mode)
 
-    ;; Save history of minibuffer
-    (savehist-mode)
+       ;; Save history of minibuffer
+       (savehist-mode)
 
-    ;; Fix archaic defaults
-    (setopt sentence-end-double-space nil)
+       ;; Fix archaic defaults
+       (setopt sentence-end-double-space nil)
 
-    ;; Make right-click do something sensible
-    (when (display-graphic-p)
-      (context-menu-mode))
+       ;; Make right-click do something sensible
+       (when (display-graphic-p)
+         (context-menu-mode))
 
-    ;; Don't litter file system with *~ backup files; put them all inside
-    ;; ~/.emacs.d/backup or wherever
-    (defun bedrock--backup-file-name (fpath)
-      "Return a new file path of a given file path.
-    If the new path's directories does not exist, create them."
-      (let* ((backupRootDir "~/.emacs.d/emacs-backup/")
-             (filePath (replace-regexp-in-string "[A-Za-z]:" "" fpath )) ; remove Windows driver letter in path
-             (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~"))))
-        (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
-        backupFilePath))
-    (setopt make-backup-file-name-function 'bedrock--backup-file-name)
-  
-    ;; which-key: shows a popup of available keybindings when typing a long key
-    ;; sequence (e.g. C-x ...)
-    (use-package which-key
-      :ensure t
-      :config
-      (setq which-key-keymap-history t)
-      (which-key-mode))
+       ;; Don't litter file system with *~ backup files; put them all inside
+       ;; ~/.emacs.d/backup or wherever
+       (defun bedrock--backup-file-name (fpath)
+         "Return a new file path of a given file path.
+       If the new path's directories does not exist, create them."
+         (let* ((backupRootDir "~/.emacs.d/emacs-backup/")
+                (filePath (replace-regexp-in-string "[A-Za-z]:" "" fpath )) ; remove Windows driver letter in path
+                (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~"))))
+           (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
+           backupFilePath))
+       (setopt make-backup-file-name-function 'bedrock--backup-file-name)
+
+       ;; which-key: shows a popup of available keybindings when typing a long key
+       ;; sequence (e.g. C-x ...)
+       (use-package which-key
+         :ensure t
+         :config
+         (setq which-key-keymap-history t)
+         (which-key-enable-god-mode-support)
+         (which-key-mode))
 
 
-  (setopt completion-auto-select 'second-tab)            ; Much more eager
+     (setopt completion-auto-select 'second-tab)            ; Much more eager
 
-    (keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete) ; TAB acts more like how it does in the shell
+       (keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete) ; TAB acts more like how it does in the shell
 
-    ;; Mode line information
-    (setopt line-number-mode t)                        ; Show current line in modeline
-    (setopt column-number-mode t)                      ; Show column as well
+       ;; Mode line information
+       (setopt line-number-mode t)                        ; Show current line in modeline
+       (setopt column-number-mode t)                      ; Show column as well
 
-    (setopt x-underline-at-descent-line nil)           ; Prettier underlines
-    (setopt switch-to-buffer-obey-display-actions t)   ; Make switching buffers more consistent
+       (setopt x-underline-at-descent-line nil)           ; Prettier underlines
+       (setopt switch-to-buffer-obey-display-actions t)   ; Make switching buffers more consistent
 
-    (setopt show-trailing-whitespace nil)      ; By default, don't underline trailing spaces
-    (setopt indicate-buffer-boundaries 'left)  ; Show buffer top and bottom in the margin
+       (setopt show-trailing-whitespace nil)      ; By default, don't underline trailing spaces
+       (setopt indicate-buffer-boundaries 'left)  ; Show buffer top and bottom in the margin
 
-    ;; Enable horizontal scrolling
-    (setopt mouse-wheel-tilt-scroll t)
-    (setopt mouse-wheel-flip-direction t)
+       ;; Enable horizontal scrolling
+       (setopt mouse-wheel-tilt-scroll t)
+       (setopt mouse-wheel-flip-direction t)
 
-    ;; We won't set these, but they're good to know about
-    ;;
-    ;; (setopt indent-tabs-mode nil)
-    ;; (setopt tab-width 4)
+       ;; We won't set these, but they're good to know about
+       ;;
+       ;; (setopt indent-tabs-mode nil)
+       ;; (setopt tab-width 4)
 
-    ;; Misc. UI tweaks
-    (blink-cursor-mode -1)                                ; Steady cursor
-    (pixel-scroll-precision-mode)                         ; Smooth scrolling
+       ;; Misc. UI tweaks
+       (blink-cursor-mode -1)                                ; Steady cursor
+       (pixel-scroll-precision-mode)                         ; Smooth scrolling
 
-    ;; Display line numbers in programming mode
-    (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-    (setopt display-line-numbers-width 3)           ; Set a minimum width
+       ;; Display line numbers in programming mode
+       (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+       (setopt display-line-numbers-width 3)           ; Set a minimum width
 
-    ;; Nice line wrapping when working with text
-    (add-hook 'text-mode-hook 'visual-line-mode)
+       ;; Nice line wrapping when working with text
+       (add-hook 'text-mode-hook 'visual-line-mode)
 
-    ;; Modes to highlight the current line with
-    (let ((hl-line-hooks '(text-mode-hook prog-mode-hook)))
-      (mapc (lambda (hook) (add-hook hook 'hl-line-mode)) hl-line-hooks))
+       ;; Modes to highlight the current line with
+       (let ((hl-line-hooks '(text-mode-hook prog-mode-hook)))
+         (mapc (lambda (hook) (add-hook hook 'hl-line-mode)) hl-line-hooks))
 
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;;
-    ;;;   Tab-bar configuration
-    ;;;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+       ;;;
+       ;;;   Tab-bar configuration
+       ;;;
+       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ;; Show the tab-bar as soon as tab-bar functions are invoked
-    (setopt tab-bar-show 1)
+       ;; Show the tab-bar as soon as tab-bar functions are invoked
+       (setopt tab-bar-show 1)
 
-    ;; Add the time to the tab-bar, if visible
+       ;; Add the time to the tab-bar, if visible
 
-    (custom-set-variables
-     ;; custom-set-variables was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     '(package-selected-packages
-       '(dracula-theme company use-package use-package-chords key-chord evil which-key)))
-    (custom-set-faces
-     ;; custom-set-faces was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     )
+       (custom-set-variables
+        ;; custom-set-variables was added by Custom.
+        ;; If you edit it by hand, you could mess it up, so be careful.
+        ;; Your init file should contain only one such instance.
+        ;; If there is more than one, they won't work right.
+        '(package-selected-packages
+          '(dracula-theme company use-package use-package-chords key-chord evil which-key)))
+       (custom-set-faces
+        ;; custom-set-faces was added by Custom.
+        ;; If you edit it by hand, you could mess it up, so be careful.
+        ;; Your init file should contain only one such instance.
+        ;; If there is more than one, they won't work right.
+        )
 
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;;; My stuff
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+       ;;; My stuff
+       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 #+end_src
+
+#+RESULTS:
 
 * My emacs stuff
 Turn off the damn bell
@@ -262,7 +264,7 @@ Dracula (kinda mid comapared to doom-dracula)
     :config
     (add-to-list 'custom-theme-load-path "~/bedrock/themes")
     :init
-    (load-theme 'dracula t)
+    ;; (load-theme 'dracula t)
   )
 
 #+end_src
@@ -275,7 +277,7 @@ Doom themes
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;; (load-theme 'doom-dracula t)
+  (load-theme 'doom-dracula t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -325,52 +327,48 @@ Make a keymap for =project.el=
 
 
 #+begin_src elisp
-      (use-package emacs
-        :custom
-        (tab-always-indent 'complete)
-        ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-        ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-        ;; setting is useful beyond Corfu.
-        (read-extended-command-predicate #'command-completion-default-include-p)
-        (enable-recursive-minibuffers t)
-        ;; more comfort
-        (line-spacing 3)
-        (scroll-conservatively 101)
-        ;; use a very narrow window divider
-        (window-divider-default-right-width 1)
-        (window-divider-default-bottom-width 1)
-        (scroll-bar-mode nil)
-        (xref-prompt-for-identifier nil)
-        :config 
-        (electric-pair-mode 1)
-        ;; wrap on whitespace
-        (global-word-wrap-whitespace-mode 1)
-        ;; trying this out, let's see if I hate it
-        (auto-save-mode 1)
-        (setq auto-save-timeout 3)
-        (setq ediff-window-setup-function #'ediff-setup-windows-plain)
-        (menu-bar-bottom-and-right-window-divider)
-        (scroll-bar-mode -1)
-        ;; font installed from https://www.jetbrains.com/lp/mono/
-        (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
-        :bind
-        ("C-<return>" . recenter)
-        ("M-<backspace>" . backward-kill-word)
-        ("C-M-RET" . xref-find-references)
-        ("s-K" . kill-buffer-and-window)
-        ("C-M-." . xref-find-definitions-other-window)
-        (:map my/project-map
-    		  ("p" . project-switch-project)
-  		  ("f" . project-find-file))
-        :init
-        (defun crm-indicator (args)
-          (cons (format "[CRM%s] %s"
-                  (replace-regexp-in-string
-                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                   crm-separator)
-                  (car args))
-          (cdr args)))
-        (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+  (use-package emacs
+    :custom
+    (tab-always-indent 'complete)
+    ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+    ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+    ;; setting is useful beyond Corfu.
+    (read-extended-command-predicate #'command-completion-default-include-p)
+    (enable-recursive-minibuffers t)
+    ;; more comfort
+    (line-spacing 3)
+    (scroll-conservatively 101)
+    ;; use a very narrow window divider
+    (window-divider-default-right-width 1)
+    (window-divider-default-bottom-width 1)
+    (scroll-bar-mode nil)
+    (xref-prompt-for-identifier nil)
+    :config 
+    (electric-pair-mode 1)
+    ;; wrap on whitespace
+    (global-word-wrap-whitespace-mode 1)
+    (auto-save-mode -1) ; turn off autosave
+    (setq auto-save-timeout 3)
+    (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+    (menu-bar-bottom-and-right-window-divider)
+    (scroll-bar-mode -1)
+    ;; font installed from https://www.jetbrains.com/lp/mono/
+    (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
+    :bind
+    ("C-<return>" . recenter)
+    ("M-<backspace>" . backward-kill-word)
+    ("C-M-RET" . xref-find-references)
+    ("s-K" . kill-buffer-and-window)
+    ("C-M-." . xref-find-definitions-other-window)
+    :init
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+              (replace-regexp-in-string
+               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+               crm-separator)
+              (car args))
+      (cdr args)))
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
 
 #+RESULTS:
@@ -737,7 +735,6 @@ Use all-the-icons
 #+begin_src elisp
   (use-package rg
     :ensure t
-    :after meow
     :config
     ;; TODO -- suffix for not ignoring bitbucket vendors
     
@@ -762,6 +759,33 @@ Use all-the-icons
     (rg-enable-default-bindings (kbd "C-c r")))
 
 #+end_src
+
+* God mode
+https://github.com/emacsorphanage/god-mode
+#+begin_src elisp
+  (use-package god-mode
+    :ensure t
+    :bind
+    ("<escape>" . #'god-local-mode)
+    ("C-z" . repeat)
+    (:map god-local-mode-map
+          ("a" . beginning-of-line-text)
+          ("[" . backward-paragraph)
+          ("]" . forward-paragraph))
+    :config
+    (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
+    (defun god-mode-cursor ()
+      (if god-local-mode
+          (setq-local cursor-type 'box)
+        (setq-local cursor-type 'bar)))
+    (add-hook 'god-mode-enabled-hook #'god-mode-cursor)
+    (add-hook 'god-mode-disabled-hook #'god-mode-cursor)
+    :init
+    (god-mode))
+#+end_src
+
+#+RESULTS:
+: forward-paragraph
 
 
 * Meow
@@ -877,37 +901,31 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 #+end_src
 
 #+begin_src elisp
-    (use-package meow
-      :ensure t
-      :config
-      (meow-setup)
-      (meow-setup-indicator)
-      (setq meow-use-clipboard t
-            meow-keypad-self-insert-undefined nil)
-      
-      
-      :init
-      (meow-global-mode 1))
+  (use-package meow
+    :disabled
+    :ensure t
+    :config
+    (meow-setup)
+    (meow-setup-indicator)
+    (setq meow-use-clipboard t
+	  meow-keypad-self-insert-undefined nil)
+    :init
+    (meow-global-mode 1))
 
-    ;; only way I ha
-    ;; ve found to have the keychord go and not screw up the map made in #'meow-setup
-    ;; ;
-    (use-package meow
-      :defer t
-      :bind
-      (:map meow-normal-state-keymap
-  		  ("'" . better-jumper-jump-backward))
-      :hook
-      ;; set a jump to the last place we left insert mode
-      (meow-insert-exit-hook . better-jumper-set-jump)
-      :chords
-      (:map meow-insert-state-keymap
-            ("jk" . meow-insert-exit)))
+  ;; only way I ha
+  ;; ve found to have the keychord go and not screw up the map made in #'meow-setup
+  ;; ;
+  ;; (use-package meow
+  ;;   :disabled
+  ;;   :defer t
+  ;;   :chords
+  ;;   (:map meow-insert-state-keymap
+  ;; 	("jk" . meow-insert-exit)))
 #+end_src
 
 Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
 #+begin_src elisp
-  (define-key meow-insert-state-keymap (kbd "M-SPC") 'meow-keypad)
+  ;; (define-key meow-insert-state-keymap (kbd "M-SPC") 'meow-keypad)
 #+end_src
 
 
@@ -945,7 +963,6 @@ Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
 ** Vertico
 #+begin_src elisp
   (use-package vertico
-    :after meow
     :ensure t
     :custom
     (vertico-count 20) ;; Show more candidates
@@ -1064,6 +1081,13 @@ Using tab-and-go completion style
   ;;         ("<escape>" . company-abort))
   ;;   :init
   ;;   (global-company-mode 1))
+#+end_src
+
+Company-box shows nice popups (and documentation) for selection candidates
+#+begin_src elisp
+  (use-package company-box
+    :ensure t
+    :hook (company-mode . company-box-mode))
 #+end_src
 
 #+RESULTS:
@@ -1317,19 +1341,21 @@ Don't watch vendor dirs
 
 
 #+begin_src elisp
-    (use-package lsp-mode
-      :ensure t
-      :config
-      (setq lsp-headerline-breadcrumb-enable t
-            lsp-enable-file-watchers nil
-            ;; show warns in flycheck
-            lsp-diagnostics-flycheck-default-level 'warning)
-      :hook
-      ;; go
-      ((go-mode . lsp-deferred)
-       (go-mode . lsp-format-and-organize-imports)
-       ;; (go-mode . lsp-ignore-vendor)
-       (tsx-ts-mode . lsp-deferred)))
+  (use-package lsp-mode
+    :ensure t
+    :config
+    (setq lsp-headerline-breadcrumb-enable t
+          lsp-enable-file-watchers nil
+          ;; show warns in flycheck
+          lsp-diagnostics-flycheck-default-level 'warning)
+    :hook
+    ;; go
+    ((go-mode . lsp-deferred)
+     (go-mode . lsp-format-and-organize-imports)
+     ;; (go-mode . lsp-ignore-vendor)
+     (tsx-ts-mode . lsp-deferred)
+     (rust-mode . lsp-deferred)
+     (go-mode . lsp-format-and-organize-imports)))
 #+end_src
 
 *** LSP extensions
@@ -1393,7 +1419,7 @@ Speed up JSON parsing in lsp mode
 #+end_src
 
 
-*** Go
+** Go
 Also get go-mode
 #+begin_src elisp
   (use-package go-mode
@@ -1449,14 +1475,22 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
 
 
 
-**** templ
+*** templ
 #+begin_src elisp
   (use-package templ-ts-mode
     :ensure t)
 #+end_src
 
 
-*** TSX
+** Rust
+#+begin_src elisp
+          (use-package rust-mode
+            :ensure t
+            :hook
+            (rust-mode . lsp-))
+#+end_src
+
+** TSX
 #+begin_src elisp
   (add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
   (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
@@ -1471,8 +1505,7 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
 #+end_src
 
 
-*** Clojure mode
-
+** Clojure mode
 #+begin_src elisp
       (use-package clojure-mode
         :ensure t)
@@ -1536,12 +1569,13 @@ Protocol buffer syntax highlighting
   (use-package protobuf-mode :ensure t)
 #+end_src
 
-
-#+RESULTS:
-
-
-
-
+PKL
+[[https://github.com/sin-ack/pkl-mode][Reference]]
+#+begin_src elisp
+  ;; (when (>= emacs-major-version 30)
+  ;;   (use-package pkl-mode
+  ;;   :vc (:url "https://github.com/sin-ack/pkl-mode" :rev :newest)))
+#+end_src
 
 * Formatters
 
@@ -1816,5 +1850,3 @@ Nyan cat showing buffer position? Sure
 
   ;; (add-hook 'treemacs-post-buffer-init-hook #'treemacs-git-project)
 #+end_src
-
-
