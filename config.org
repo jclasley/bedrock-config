@@ -343,6 +343,7 @@ Make a keymap for =project.el=
     (window-divider-default-bottom-width 1)
     (scroll-bar-mode nil)
     (xref-prompt-for-identifier nil)
+    (cursor-style 'bar)
     :config 
     (electric-pair-mode 1)
     ;; wrap on whitespace
@@ -360,6 +361,8 @@ Make a keymap for =project.el=
     ("C-M-RET" . xref-find-references)
     ("s-K" . kill-buffer-and-window)
     ("C-M-." . xref-find-definitions-other-window)
+    ("C-q" . bury-buffer)
+    ("M-Z" . zap-up-to-char)
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
@@ -372,7 +375,7 @@ Make a keymap for =project.el=
 #+end_src
 
 #+RESULTS:
-: project-find-file
+: zap-up-to-char
 
 #+begin_src elisp
   (use-package kmacro
@@ -684,7 +687,7 @@ Function to open up the projectile root
 
       (treemacs-hide-gitignored-files-mode nil))
     :bind
-    ("<f8>" .  treemacs-add-and-display-current-project-exclusively)
+    ("C-<f8>" .  treemacs-add-and-display-current-project-exclusively)
     (:map global-map
           ("M-0"       . treemacs-select-window)
           ("C-x t 1"   . treemacs-delete-other-windows)
@@ -694,6 +697,9 @@ Function to open up the projectile root
           ("C-x t C-t" . treemacs-find-file)
           ("C-x t M-t" . treemacs-find-tag)))
 #+end_src
+
+#+RESULTS:
+: treemacs-find-tag
 
 Use all-the-icons
 #+begin_src elisp
@@ -759,6 +765,24 @@ Use all-the-icons
     (rg-enable-default-bindings (kbd "C-c r")))
 
 #+end_src
+
+Better-jumper allows us to set marks and jump around pretty easily
+#+begin_src elisp
+  (use-package better-jumper
+    :ensure t
+    ;; set up the keymap for jumper if it's enabled
+    :config
+    (setq my/jump-map (make-sparse-keymap))
+    (define-key global-map (kbd "C-j") `("jump" . ,my/jump-map))
+    :bind
+    (:map my/jump-map
+  		("f" . better-jumper-jump-forward)
+  		("b" . better-jumper-jump-backward)
+  		("j" . better-jumper-set-jump)))
+#+end_src
+
+#+RESULTS:
+: better-jumper-set-jump
 
 * God mode
 https://github.com/emacsorphanage/god-mode
@@ -1090,8 +1114,16 @@ Company-box shows nice popups (and documentation) for selection candidates
     :hook (company-mode . company-box-mode))
 #+end_src
 
+Really turn off company mode
+#+begin_src elisp
+  (defun turn-off-company ()
+    (company-mode -1))
+    (add-hook 'prog-mode-hook #'turn-off-company)
+#+end_src
+
+
 #+RESULTS:
-: company-abort
+| turn-off-company | hl-todo-mode | rainbow-delimiters-mode | highlight-indent-guides-mode | hl-line-mode | display-line-numbers-mode |
 
 
 *** Corfu
