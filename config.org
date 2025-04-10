@@ -496,17 +496,11 @@ Integrate persp and projectile
   (use-package all-the-icons
     :if (display-graphic-p))
 
-  ;; show icons in minibuffer!
-  (use-package all-the-icons-completion
-    :ensure t
-    :after (marginalia all-the-icons)
-    :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-    :init
-    (all-the-icons-completion-mode))
-
   (use-package nerd-icons
     :if (display-graphic-p))
 #+end_src
+
+#+RESULTS:
 
 
 ** Tabs
@@ -796,20 +790,21 @@ https://github.com/emacsorphanage/god-mode
           ("a" . beginning-of-line-text)
           ("[" . backward-paragraph)
           ("]" . forward-paragraph))
+    :chords
+    ("jk" . god-local-mode)
     :config
     (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
     (defun god-mode-cursor ()
       (if god-local-mode
           (setq-local cursor-type 'box)
         (setq-local cursor-type 'bar)))
-    (add-hook 'god-mode-enabled-hook #'god-mode-cursor)
-    (add-hook 'god-mode-disabled-hook #'god-mode-cursor)
+    (add-hook 'post-command-hook #'god-mode-cursor)
     :init
     (god-mode))
 #+end_src
 
 #+RESULTS:
-: forward-paragraph
+: god-local-mode
 
 
 * Meow
