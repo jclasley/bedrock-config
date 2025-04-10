@@ -316,53 +316,67 @@ Runs at midnight every day
 
 
 ** Emacs customization
+Make a keymap for =project.el= 
+#+begin_src elisp
+  (setq my/project-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c p") `("project" . ,my/project-map))
+#+end_src
+
+#+RESULTS:
+| project | keymap |
+
 
 #+begin_src elisp
-  (use-package emacs
-    :custom
-    (tab-always-indent 'complete)
-    ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-    ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-    ;; setting is useful beyond Corfu.
-    (read-extended-command-predicate #'command-completion-default-include-p)
-    (enable-recursive-minibuffers t)
-    ;; more comfort
-    (line-spacing 3)
-    (scroll-conservatively 101)
-    ;; use a very narrow window divider
-    (window-divider-default-right-width 1)
-    (window-divider-default-bottom-width 1)
-    (scroll-bar-mode nil)
-    (xref-prompt-for-identifier nil)
-    (desktop-save-mode t)
-    :config 
-    (electric-pair-mode 1)
-    ;; wrap on whitespace
-    (global-word-wrap-whitespace-mode 1)
-    (auto-save-mode -1) ; turn off autosave
-    (setq auto-save-timeout 3)
-    (setq ediff-window-setup-function #'ediff-setup-windows-plain)
-    (menu-bar-bottom-and-right-window-divider)
-    (scroll-bar-mode -1)
-    ;; font installed from https://www.jetbrains.com/lp/mono/
-    (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
-    :bind
-    ("C-<return>" . recenter)
-    ("M-<backspace>" . backward-kill-word)
-    ("C-M-RET" . xref-find-references)
-    ("s-K" . kill-buffer-and-window)
-    ("C-M-." . xref-find-definitions-other-window)
-    ("C-q" . bury-buffer)
-    :init
-    (defun crm-indicator (args)
-      (cons (format "[CRM%s] %s"
-              (replace-regexp-in-string
-               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-               crm-separator)
-              (car args))
-      (cdr args)))
-    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+    (use-package emacs
+      :custom
+      (tab-always-indent 'complete)
+      ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+      ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+      ;; setting is useful beyond Corfu.
+      (read-extended-command-predicate #'command-completion-default-include-p)
+      (enable-recursive-minibuffers t)
+      ;; more comfort
+      (line-spacing 3)
+      (scroll-conservatively 101)
+      ;; use a very narrow window divider
+      (window-divider-default-right-width 1)
+      (window-divider-default-bottom-width 1)
+      (scroll-bar-mode nil)
+      (xref-prompt-for-identifier nil)
+      (desktop-save-mode t)
+      (cursor-style 'bar)
+      :config 
+      (electric-pair-mode 1)
+      ;; wrap on whitespace
+      (global-word-wrap-whitespace-mode 1)
+      (auto-save-mode -1) ; turn off autosave
+      (setq auto-save-timeout 3)
+      (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+      (menu-bar-bottom-and-right-window-divider)
+      (scroll-bar-mode -1)
+      ;; font installed from https://www.jetbrains.com/lp/mono/
+      (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
+      :bind
+      ("C-<return>" . recenter)
+      ("M-<backspace>" . backward-kill-word)
+      ("C-M-RET" . xref-find-references)
+      ("s-K" . kill-buffer-and-window)
+      ("C-M-." . xref-find-definitions-other-window)
+      ("C-q" . bury-buffer)
+    ("M-Z" . zap-up-to-char)
+      :init
+      (defun crm-indicator (args)
+        (cons (format "[CRM%s] %s"
+                (replace-regexp-in-string
+                 "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                 crm-separator)
+                (car args))
+        (cdr args)))
+      (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
+
+#+RESULTS:
+: zap-up-to-char
 
 #+begin_src elisp
   (use-package kmacro
@@ -385,8 +399,6 @@ Specific settings that we only want when in TTY
         (unless (display-graphic-p)
           (menu-bar-mode -1))
 #+end_src
-
-
 
 ** Project management
 
@@ -485,17 +497,11 @@ Integrate persp and projectile
   (use-package all-the-icons
     :if (display-graphic-p))
 
-  ;; show icons in minibuffer!
-  (use-package all-the-icons-completion
-    :ensure t
-    :after (marginalia all-the-icons)
-    :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-    :init
-    (all-the-icons-completion-mode))
-
   (use-package nerd-icons
     :if (display-graphic-p))
 #+end_src
+
+#+RESULTS:
 
 
 ** Tabs
@@ -537,19 +543,6 @@ Delete a window more easily
 #+begin_src elisp
   (keymap-set my/window-map "m" '("maximize" . maximize-window))
 #+end_src
-
-*** popwin
-Basically just turns the annoying =*xref*= and =*Help*= buffers into popups of their own
-#+begin_src elisp
-  (use-package popwin
-    :disabled
-    :ensure t
-    :init
-    (popwin-mode 1))
-#+end_src
-
-#+RESULTS:
-
 
 *** popper
 #+begin_src elisp
@@ -687,7 +680,7 @@ Function to open up the projectile root
 
       (treemacs-hide-gitignored-files-mode nil))
     :bind
-    ("<f8>" .  treemacs-add-and-display-current-project-exclusively)
+    ("C-<f8>" .  treemacs-add-and-display-current-project-exclusively)
     (:map global-map
           ("M-0"       . treemacs-select-window)
           ("C-x t 1"   . treemacs-delete-other-windows)
@@ -697,6 +690,9 @@ Function to open up the projectile root
           ("C-x t C-t" . treemacs-find-file)
           ("C-x t M-t" . treemacs-find-tag)))
 #+end_src
+
+#+RESULTS:
+: treemacs-find-tag
 
 Use all-the-icons
 #+begin_src elisp
@@ -763,6 +759,24 @@ Use all-the-icons
 
 #+end_src
 
+Better-jumper allows us to set marks and jump around pretty easily
+#+begin_src elisp
+  (use-package better-jumper
+    :ensure t
+    ;; set up the keymap for jumper if it's enabled
+    :config
+    (setq my/jump-map (make-sparse-keymap))
+    (define-key global-map (kbd "C-j") `("jump" . ,my/jump-map))
+    :bind
+    (:map my/jump-map
+  		("f" . better-jumper-jump-forward)
+  		("b" . better-jumper-jump-backward)
+  		("j" . better-jumper-set-jump)))
+#+end_src
+
+#+RESULTS:
+: better-jumper-set-jump
+
 * God mode
 https://github.com/emacsorphanage/god-mode
 #+begin_src elisp
@@ -776,6 +790,8 @@ https://github.com/emacsorphanage/god-mode
           ("a" . beginning-of-line-text)
           ("[" . backward-paragraph)
           ("]" . forward-paragraph))
+    :chords
+    ("jk" . god-local-mode)
     :config
     (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
 
@@ -783,17 +799,13 @@ https://github.com/emacsorphanage/god-mode
       (if god-local-mode
           (setq-local cursor-type 'box)
         (setq-local cursor-type 'bar)))
-    (add-hook 'god-mode-enabled-hook #'god-mode-cursor)
-    (add-hook 'god-mode-disabled-hook #'god-mode-cursor)
-    :hook
-    ;; start in god mode
-    (text-mode . god-local-mode)
+    (add-hook 'post-command-hook #'god-mode-cursor)
     :init
     (god-mode))
 #+end_src
 
 #+RESULTS:
-: forward-paragraph
+: god-local-mode
 
 
 * Meow
@@ -801,6 +813,7 @@ Custom function to support surrounding a selection with something
 #+begin_src elisp
   (defun meow-surround (start end char)
     (interactive "r\ncSurround:")
+    (unless (eq char (kbd "")))
     (save-excursion
       (goto-char start)
       (insert char)
@@ -904,7 +917,6 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
      '("Y" . meow-sync-grab)
      '("z" . meow-pop-selection)
      '("C-o" . meow-pop-to-mark)
-     '("'" . repeat)
      '("<escape>" . meow-cancel-selection)))
 #+end_src
 
@@ -938,250 +950,6 @@ Meow's keybindings don't like to be messed with (or at least I can't figure out 
   ;; (define-key meow-insert-state-keymap (kbd "M-SPC") 'meow-keypad)
 #+end_src
 
-
-* Org
-
-Make a keymap for org
-#+begin_src elisp
-  (setq my/org-map (make-sparse-keymap))
-  (define-key global-map (kbd "C-c o") `("org" . ,my/org-map))
-#+end_src
-
-Tags for quickly setting
-#+begin_src elisp
-  (setq org-tag-alist (append '((:startgroup . nil) ; at most one of the following
-                              ("@home" . ?h)
-                              ("@work" . ?w)
-                              ("@out". ?o)
-                              (:endgroup . nil)
-                              ;; any of the following
-                              ("project" . ?p)
-                              ("learning" . ?l))
-                            org-tag-alist-for-agenda))
-#+end_src
-
-My tags and their font faces
-#+begin_src elisp
-(setq my/org-todo-keywords '(
-                             ("TODO(t)" . org-todo)
-                             ("NEXT(n)" .  (:foreground "#34ebd8" :weight bold :slant italic))
-                             ("PROG(p!)" . (:foreground "green" :weight bold))
-                             ("HOLD(h@)" . (:background "orange" :foreground "white")) ; in progress but held up
-                             ("|")
-                             ("DONE(d!)" . org-done)
-                             ("WONT(w@/!)" . (:foreground "red" :weight bold))))
-#+end_src
-
-#+begin_src elisp
-  (use-package org
-    :ensure t
-    :config
-    (setq org-agenda-files (list (expand-file-name "~/org")))
-    ;; set faces
-    (setq org-todo-keywords (list (append '(sequence)
-                                        (seq-map #'(lambda (elt)
-                                                     (if (listp elt)
-                                                         (car elt)
-                                                       elt))
-                                                 my/org-todo-keywords))))
-
-  (setq org-todo-keyword-faces (let ((f (lambda (elt)
-                                         (if (listp elt)
-                                             `(
-                                              ,(seq-take-while #'(lambda (elt) (not (equal ?\( elt))) (car elt))
-                                              .
-                                              ,(cdr elt))
-                                           elt)
-                                         )))
-                                 (seq-map #'(lambda (elt) (funcall f elt)) my/org-todo-keywords)))
-  ;; 
-    ;; config files
-    (setq +org-chores-file (expand-file-name "~/org/chores.org"))
-    (setq org-agenda-start-day nil
-          org-agenda-span 1)
-    :bind
-    (:map my/org-map
-          ("a" . org-agenda)
-          ("c" . org-capture))
-    :hook
-    (org-mode . (lambda () (setq tab-width 8)))
-    :init
-    (add-hook 'org-mode-hook #'org-indent-mode))
-#+end_src
-
-A minor mode for presenting org (focusing)
-#+begin_src elisp
-    (use-package org-present
-      :ensure t)
-#+end_src
-
-[[https://github.com/alphapapa/org-ql][org-ql]] makes searching org docs much easier
-#+begin_src elisp
-  (use-package org-ql
-    :ensure t)
-#+end_src
-
-
-** Super agenda
-#+begin_src elisp
-  (use-package org-super-agenda
-    :ensure t
-    :init (org-super-agenda-mode 1))
-#+end_src
-
-
-Create the custom agenda command for super agenda
-#+begin_src elisp
-  (setq org-agenda-custom-commands
-      '(("c" "Super agenda"
-         ((agenda "" ((org-agenda-overriding-header "")
-                      (org-super-agenda-groups
-                       '((:log t)
-                         (:name "Overdue"
-                          :deadline past)
-                         (:name "Habits"
-                          :habit t)
-                         (:name "Today"
-                          :time-grid t
-                          :date today)
-                         (:name "Unstarted"
-                          :scheduled past)
-                         (:discard (:anything t))
-                         ))))
-          (alltodo "" ((org-agenda-overriding-header "")
-                       (org-super-agenda-groups
-                        `((:log t)
-                         (:name "Important"
-                          :priority "A"
-                          :face (:weight ultra-bold :background "blue")
-                          :order 1)
-                          (:name "Next"
-                           :todo "NEXT"
-                           :order 3)
-                         (:name "Coming up"
-                                :scheduled future
-                                :order 4)
-                          (:name "In progress"
-                           :todo "PROG"
-                           :order 2)
-                          (:name "Can wait"
-                           :priority "C"
-                           :order 5)
-                          (:name "If time"
-                           :priority "B"
-                           :order 4)
-                          (:name "Blocked"
-                                 :todo "HOLD"
-                                 :order 100)
-                          (:discard (:file-path ,(expand-file-name "~/org/bills.org")))
-                          (:discard (:file-path ,(expand-file-name "~/org/habits.org")))
-                          (:discard (:anything t))))))))))
-#+end_src
-
-
-** Templates
-#+begin_src elisp
-  (setq org-capture-templates '(("a" "Agenda")
-  							  ("at" "TODO" entry
-  							   (file "~/org/agenda.org")
-  							   "* TODO %?"
-  							   :empty-lines-before 1)
-                                ("ad" "Deadline" entry
-                                 (file+olp+datetree "~/org/agenda.org")
-                                 "* %?\nDEADLINE: %^{at}t")
-                                ("t" "Todos")
-                                ("tt" "project todo" entry
-                                 (file "~/org/projects.org")
-                                 "* TODO %?\n%i"
-  							   :empty-lines-before 1)
-                                ("tf" "file todo" entry
-                                 (file "~/org/projects.org")
-                                 "* TODO %?\n%a"
-  							 :empty-lines-before 1)
-                                ("tn" "today" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\n%t"
-  							   :empty-lines-before 1)
-                                ("td" "deadline" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\nDEADLINE: %^{at}t"
-  							 :empty-lines-before 1)
-                                ("ts" "scheduled" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\nSCHEDULED: %^{at}t"
-  							   :empty-lines-before 1)
-                                ("c" "chore" entry
-                                 (file +org-chores-file)
-                                 "* TODO %?\nDEADLINE: %t"
-  							 :empty-lines-before 1)
-                                ("n" "notes")
-                                ("nd" "discussion" entry
-                                 (file+datetree "~/org/discussions.org")
-                                 "* %?"
-                                 :tree-type month)
-                                ("nn" "note" entry
-                                 (file+datetree "~/org/notes.org")
-                                 "* %?")))
-#+end_src
-
-
-** Org brain
-#+begin_src elisp
-  (setq my/org-brain-map (make-sparse-keymap))
-  (define-key my/org-map (kbd "b") `("brain" . ,my/org-brain-map))
-
-
-
-  (use-package org-brain
-    :ensure t
-    :custom
-    (org-brain-backlink t)
-    :bind
-    (:map my/org-brain-map
-          ("b" . org-brain-visualize)
-          ("l" . org-brain-get-id)))
-#+end_src
-
-Polymode is apparently nice to use with org-brain
-[[https://polymode.github.io/concepts/][Reference]]
-#+begin_src elisp
-    ;; Allows you to edit entries directly from org-brain-visualize
-  ;; (use-package polymode
-  ;;   :ensure t
-  ;;   :config
-  ;;   (add-hook 'org-brain-visualize-mode-hook #'org-brain-polymode)
-  ;;   )
-#+end_src
-
-#+RESULTS:
-: t
-
-
-
-** Org roam
-#+begin_src elisp
-  (setq my/org-roam-map (make-sparse-keymap))
-  (define-key my/org-map (kbd "r") `("roam" . ,my/org-roam-map))
-#+end_src
-
-
-#+begin_src elisp
-  (use-package org-roam
-    :ensure t
-    :config
-    (org-roam-db-autosync-mode 1)
-    (setq org-roam-db-location "~/.config/emacs/.local/cache/org-roam.db")
-    :bind
-    (:map my/org-roam-map
-          ("i" . org-roam-node-insert)
-        ("l" . org-id-get-create)
-        ("b" . org-roam-buffer-toggle)
-        ("c" . org-roam-capture)
-          ("f" . org-roam-node-find)))
-#+end_src
-
-#+RESULTS:
-: org-roam-node-find
 
 
 * Hyperbole
@@ -1312,29 +1080,29 @@ Using tab-and-go completion style
 
 *** Company
 #+begin_src elisp
-  (use-package company
-    :disabled t
-    :ensure t
-    :config
-    (setq company-tooltip-align-annotations t
-          company-show-quick-access t
-          company-files-exclusions '(".git/" ".DS_Store")
-          ;; use letters instead of icons
-          company-format-margin-function #'company-text-icons-margin
-          company-text-icons-add-background t
-          ;; make it so that I do it myself, please
-          company-idle-delay 0.3)
-    ;; customize the annotation faces
-    (custom-set-faces
-     '(company-tooltip-annotation ((t (:foreground "dark gray")))))
-    (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
-    :bind
-    ("M-i" . company-manual-begin)
-    (:map company-active-map
-          ([tab] . company-complete-common-or-cycle)
-          ("<escape>" . company-abort))
-    :init
-    (global-company-mode nil))
+  ;; (use-package company
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq company-tooltip-align-annotations t
+  ;; 		 ;;         company-show-quick-access t
+  ;;         company-files-exclusions '(".git/" ".DS_Store")
+  ;;         ;; use letters instead of icons
+  ;;         company-format-margin-function #'company-text-icons-margin
+  ;;         ;; company-text-icons-add-background t
+  ;;         ;; make it so that I do it myself, please
+  ;;         company-idle-delay 0.3)
+  ;;   ;; customize the annotation faces
+  ;;   ;; (custom-set-faces
+  ;;   ;;  '(company-tooltip-annotation ((t (:foreground "dark gray")))))
+  ;;   ;; (
+  ;;    (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
+  ;;   :bind
+  ;;   ("M-i" . company-manual-begin)
+  ;;   (:map company-active-map
+  ;;         ([tab] . company-complete-common-or-cycle)
+  ;;         ("<escape>" . company-abort))
+  ;;   :init
+  ;;   (global-company-mode 1))
 #+end_src
 
 Company-box shows nice popups (and documentation) for selection candidates
@@ -1344,7 +1112,16 @@ Company-box shows nice popups (and documentation) for selection candidates
     :hook (company-mode . company-box-mode))
 #+end_src
 
+Really turn off company mode
+#+begin_src elisp
+  (defun turn-off-company ()
+    (company-mode -1))
+    (add-hook 'prog-mode-hook #'turn-off-company)
+#+end_src
+
+
 #+RESULTS:
+| turn-off-company | hl-todo-mode | rainbow-delimiters-mode | highlight-indent-guides-mode | hl-line-mode | display-line-numbers-mode |
 
 
 *** Corfu
@@ -1356,6 +1133,10 @@ Not using it for now, trying out company
     :custom
     (corfu-cycle t)
     (corfu-preselect 'prompt)
+    (corfu-preview-current nil)
+    (corfu-quit-at-boundary nil)
+    ;; corfu popup
+    (corfu-echo-delay '(1.0 . 1.0))
     :config
     :bind
     (:map corfu-map
@@ -1365,9 +1146,40 @@ Not using it for now, trying out company
         ("S-TAB" . corfu-previous)
         ([backtab] . corfu-previous))
     :init
-    (global-corfu-mode 1)
-    (corfu-popupinfo-mode 1))
+    (global-corfu-mode 1))
 #+end_src
+
+*** Cape
+https://github.com/minad/cape
+#+begin_src elisp
+    (use-package cape
+  	:disabled
+  	:ensure t
+    ;; Bind prefix keymap providing all Cape commands under a mnemonic key.
+    ;; Press C-c p ? to for help.
+    :bind ("C-c C-p" . cape-prefix-map) ;; Alternative key: M-<tab>, M-p, M-+
+    ;; Alternatively bind Cape commands individually.
+    ;; :bind (("C-c p d" . cape-dabbrev)
+    ;;        ("C-c p h" . cape-history)
+    ;;        ("C-c p f" . cape-file)
+    ;;        ...)
+    :init
+    ;; Add to the global default value of `completion-at-point-functions' which is
+    ;; used by `completion-at-point'.  The order of the functions matters, the
+    ;; first function returning a result wins.  Note that the list of buffer-local
+    ;; completion functions takes precedence over the global list.
+    (add-hook 'completion-at-point-functions #'cape-dabbrev)
+    (add-hook 'completion-at-point-functions #'cape-file)
+    (add-hook 'completion-at-point-functions #'cape-elisp-block)
+    ;; (add-hook 'completion-at-point-functions #'cape-history)
+    ;; ...
+  )
+#+end_src
+
+
+#+RESULTS:
+: cape-prefix-map
+
 ** Consult
 A function to search the current directory. If something is under point, suggest that as default
 #+begin_src elisp
@@ -1479,7 +1291,7 @@ Use consult-xref for xref! So great
       :ensure t
       :bind
       (("C-M-g" . magit)
-       ("C-M-b" . magit-branch)))
+       ("C-M-b" . magit-checkout)))
 #+end_src
 
 
@@ -1743,6 +1555,39 @@ Reference [[https://github.com/clojure-emacs/cider][here]]
       :ensure t)
 #+end_src
 
+
+*** PKL
+[[https://github.com/sin-ack/pkl-mode][Reference]]
+#+begin_src elisp
+  ;; requires a custom language server
+  (with-eval-after-load 'lsp-mode
+    (add-to-list 'lsp-language-id-configuration '(pkl-mode . "pkl"))
+
+    ;; add the server
+    (lsp-register-client (make-lsp-client
+  			:new-connection (lsp-stdio-connection '("java" "-jar" "/Users/LASLEJX1/.pkl/lsp.jar"))
+  			:activation-fn (lsp-activate-on "pkl")
+  			:server-id 'pkl)))
+
+
+
+  (use-package pkl-mode
+    :vc (:url "https://github.com/sin-ack/pkl-mode" :rev :newest)
+    :hook
+    (pkl-mode . lsp-deferred))
+#+end_src
+
+#+RESULTS:
+| lsp-deferred |
+
+LSP configuration
+#+begin_src elisp
+#+end_src
+
+#+RESULTS:
+
+
+
 ** One-off languages (no LSP)
 =fsh= mode
 #+begin_src elisp
@@ -1784,6 +1629,227 @@ JSON should have a =tab-width= of 2
     (add-hook 'js-json-mode-hook #'(lambda () (setq-local tab-width 2
                                                           indent-tabs-mode nil)))
 #+end_src
+
+* Org
+
+Make a keymap for org
+#+begin_src elisp
+  (setq my/org-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c o") `("org" . ,my/org-map))
+#+end_src
+
+Tags for quickly setting
+#+begin_src elisp
+  (setq org-tag-alist (append '((:startgroup . nil) ; at most one of the following
+                              ("@home" . ?h)
+                              ("@work" . ?w)
+                              ("@out". ?o)
+                              (:endgroup . nil)
+                              ;; any of the following
+                              ("project" . ?p)
+                              ("learning" . ?l))
+                            org-tag-alist-for-agenda))
+#+end_src
+
+My tags and their font faces
+#+begin_src elisp
+(setq my/org-todo-keywords '(
+                             ("TODO(t)" . org-todo)
+                             ("NEXT(n)" .  (:foreground "#34ebd8" :weight bold :slant italic))
+                             ("PROG(p!)" . (:foreground "green" :weight bold))
+                             ("HOLD(h@)" . (:background "orange" :foreground "white")) ; in progress but held up
+                             ("|")
+                             ("DONE(d!)" . org-done)
+                             ("WONT(w@/!)" . (:foreground "red" :weight bold))))
+#+end_src
+
+#+begin_src elisp
+  (use-package org
+    :ensure t
+    :config
+    (setq org-agenda-files (list (expand-file-name "~/org")))
+    ;; set faces
+    (setq org-todo-keywords (list (append '(sequence)
+                                        (seq-map #'(lambda (elt)
+                                                     (if (listp elt)
+                                                         (car elt)
+                                                       elt))
+                                                 my/org-todo-keywords))))
+
+  (setq org-todo-keyword-faces (let ((f (lambda (elt)
+                                         (if (listp elt)
+                                             `(
+                                              ,(seq-take-while #'(lambda (elt) (not (equal ?\( elt))) (car elt))
+                                              .
+                                              ,(cdr elt))
+                                           elt)
+                                         )))
+                                 (seq-map #'(lambda (elt) (funcall f elt)) my/org-todo-keywords)))
+  ;; 
+    ;; config files
+    (setq +org-chores-file (expand-file-name "~/org/chores.org"))
+    (setq org-agenda-start-day nil
+          org-agenda-span 1)
+    :bind
+    (:map my/org-map
+          ("a" . org-agenda)
+          ("c" . org-capture))
+    :hook
+    (org-mode . (lambda () (setq tab-width 8)))
+    :init
+    (add-hook 'org-mode-hook #'org-indent-mode))
+#+end_src
+
+A minor mode for presenting org (focusing)
+#+begin_src elisp
+    (use-package org-present
+      :ensure t)
+#+end_src
+
+[[https://github.com/alphapapa/org-ql][org-ql]] makes searching org docs much easier
+#+begin_src elisp
+  (use-package org-ql
+    :ensure t)
+#+end_src
+
+
+** Super agenda
+#+begin_src elisp
+  (use-package org-super-agenda
+    :ensure t
+    :init (org-super-agenda-mode 1))
+#+end_src
+
+
+Create the custom agenda command for super agenda
+#+begin_src elisp
+  (setq org-agenda-custom-commands
+      '(("c" "Super agenda"
+         ((agenda "" ((org-agenda-overriding-header "")
+                      (org-super-agenda-groups
+                       '((:log t)
+                         (:name "Overdue"
+                          :deadline past)
+                         (:name "Habits"
+                          :habit t)
+                         (:name "Today"
+                          :time-grid t
+                          :date today)
+                         (:name "Unstarted"
+                          :scheduled past)
+                         (:discard (:anything t))
+                         ))))
+          (alltodo "" ((org-agenda-overriding-header "")
+                       (org-super-agenda-groups
+                        `((:log t)
+                         (:name "Important"
+                          :priority "A"
+                          :face (:weight ultra-bold :background "blue")
+                          :order 1)
+                          (:name "Next"
+                           :todo "NEXT"
+                           :order 3)
+                         (:name "Coming up"
+                                :scheduled future
+                                :order 4)
+                          (:name "In progress"
+                           :todo "PROG"
+                           :order 2)
+                          (:name "Can wait"
+                           :priority "C"
+                           :order 5)
+                          (:name "If time"
+                           :priority "B"
+                           :order 4)
+                          (:name "Blocked"
+                                 :todo "HOLD"
+                                 :order 100)
+                          (:discard (:file-path ,(expand-file-name "~/org/bills.org")))
+                          (:discard (:file-path ,(expand-file-name "~/org/habits.org")))
+                          (:discard (:anything t))))))))))
+#+end_src
+
+
+** Templates
+#+begin_src elisp
+  (setq org-capture-templates '(("a" "Agenda")
+  							  ("at" "TODO" entry
+  							   (file "~/org/agenda.org")
+  							   "* TODO %?"
+  							   :empty-lines-before 1)
+                                ("ad" "Deadline" entry
+                                 (file+olp+datetree "~/org/agenda.org")
+                                 "* %?\nDEADLINE: %^{at}t")
+                                ("t" "Todos")
+                                ("tt" "project todo" entry
+                                 (file "~/org/projects.org")
+                                 "* TODO %?\n%i"
+  							   :empty-lines-before 1)
+                                ("tf" "file todo" entry
+                                 (file "~/org/projects.org")
+                                 "* TODO %?\n%a"
+  							 :empty-lines-before 1)
+                                ("tn" "today" entry
+                                 (file+headline "~/org/todo.org" "Todos")
+                                 "* TODO %?\n%t"
+  							   :empty-lines-before 1)
+                                ("td" "deadline" entry
+                                 (file+headline "~/org/todo.org" "Todos")
+                                 "* TODO %?\nDEADLINE: %^{at}t"
+  							 :empty-lines-before 1)
+                                ("ts" "scheduled" entry
+                                 (file+headline "~/org/todo.org" "Todos")
+                                 "* TODO %?\nSCHEDULED: %^{at}t"
+  							   :empty-lines-before 1)
+                                ("c" "chore" entry
+                                 (file +org-chores-file)
+                                 "* TODO %?\nDEADLINE: %t"
+  							 :empty-lines-before 1)
+                                ("n" "notes")
+                                ("nd" "discussion" entry
+                                 (file+datetree "~/org/discussions.org")
+                                 "* %?"
+                                 :tree-type month)
+                                ("nn" "note" entry
+                                 (file+datetree "~/org/notes.org")
+                                 "* %?")))
+#+end_src
+
+
+** Org brain
+#+begin_src elisp
+  (use-package org-brain
+    :ensure t
+    :bind
+    (("C-c o b" . org-brain-visualize)))
+#+end_src
+
+
+** Org roam
+#+begin_src elisp
+  (setq my/org-roam-map (make-sparse-keymap))
+  (define-key my/org-map (kbd "r") `("roam" . ,my/org-roam-map))
+#+end_src
+
+
+#+begin_src elisp
+  (use-package org-roam
+    :ensure t
+    :config
+    (org-roam-db-autosync-mode 1)
+    (setq org-roam-db-location "~/.config/emacs/.local/cache/org-roam.db")
+    :bind
+    (:map my/org-roam-map
+          ("i" . org-roam-node-insert)
+        ("l" . org-id-get-create)
+        ("b" . org-roam-buffer-toggle)
+        ("c" . org-roam-capture)
+          ("f" . org-roam-node-find)))
+#+end_src
+
+#+RESULTS:
+: org-roam-node-find
+
 
 * Fun
 Nyan cat showing buffer position? Sure
