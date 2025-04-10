@@ -334,6 +334,7 @@ Runs at midnight every day
     (window-divider-default-bottom-width 1)
     (scroll-bar-mode nil)
     (xref-prompt-for-identifier nil)
+    (desktop-save-mode t)
     :config 
     (electric-pair-mode 1)
     ;; wrap on whitespace
@@ -351,6 +352,7 @@ Runs at midnight every day
     ("C-M-RET" . xref-find-references)
     ("s-K" . kill-buffer-and-window)
     ("C-M-." . xref-find-definitions-other-window)
+    ("C-q" . bury-buffer)
     :init
     (defun crm-indicator (args)
       (cons (format "[CRM%s] %s"
@@ -605,8 +607,6 @@ Function to open up the projectile root
     (("<f8>" . neotree-project-dir)))
 #+end_src
 
-
-
 *** treemacs
 #+begin_src elisp
   (use-package treemacs
@@ -772,17 +772,22 @@ https://github.com/emacsorphanage/god-mode
     ("<escape>" . #'god-local-mode)
     ("C-z" . repeat)
     (:map god-local-mode-map
+          ("i" . god-local-mode)
           ("a" . beginning-of-line-text)
           ("[" . backward-paragraph)
           ("]" . forward-paragraph))
     :config
     (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
+
     (defun god-mode-cursor ()
       (if god-local-mode
           (setq-local cursor-type 'box)
         (setq-local cursor-type 'bar)))
     (add-hook 'god-mode-enabled-hook #'god-mode-cursor)
     (add-hook 'god-mode-disabled-hook #'god-mode-cursor)
+    :hook
+    ;; start in god mode
+    (text-mode . god-local-mode)
     :init
     (god-mode))
 #+end_src
@@ -905,13 +910,13 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
 
 #+begin_src elisp
   (use-package meow
-    :disabled
+    :disabled t
     :ensure t
     :config
     (meow-setup)
     (meow-setup-indicator)
     (setq meow-use-clipboard t
-	  meow-keypad-self-insert-undefined nil)
+      meow-keypad-self-insert-undefined nil)
     :init
     (meow-global-mode 1))
 
@@ -925,6 +930,8 @@ Default meow setup, ripped from [[https://github.com/meow-edit/meow/blob/master/
   ;;   (:map meow-insert-state-keymap
   ;; 	("jk" . meow-insert-exit)))
 #+end_src
+
+#+RESULTS:
 
 Meow's keybindings don't like to be messed with (or at least I can't figure out how to =:bind= to work) so let's do it here
 #+begin_src elisp
@@ -1220,18 +1227,18 @@ Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
     ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
     :bind
     (("C-c '" . vertico-suspend)
-     (:map vertico-map 
-           ("<escape>" . vertico-suspend)
-  		 ("<tab>" . vertico-next)
-  	   ("C-i" . vertico-quick-insert)
-  	   ("C-o" . vertico-quick-exit)
-  	   ;; keeping these on so that I can test out which I like best for multiform modes
-  	   ("M-B" . vertico-multiform-buffer)
-  	   ("M-F" . vertico-multiform-flat)
-  	   ("M-G" . vertico-multiform-grid)
-  	   ("M-R" . vertico-multiform-reverse)
-  	   ("M-V" . vertico-multiform-vertical)
-  	   ("M-U" . vertico-multiform-unobtrusive)
+     (:map vertico-map
+           ("<escape>" . abort-recursive-edit)
+           ("<tab>" . vertico-next)
+       ("C-i" . vertico-quick-insert)
+       ("C-o" . vertico-quick-exit)
+       ;; keeping these on so that I can test out which I like best for multiform modes
+       ("M-B" . vertico-multiform-buffer)
+       ("M-F" . vertico-multiform-flat)
+       ("M-G" . vertico-multiform-grid)
+       ("M-R" . vertico-multiform-reverse)
+       ("M-V" . vertico-multiform-vertical)
+       ("M-U" . vertico-multiform-unobtrusive)
      ))
     :init
   (vertico-mode 1))
@@ -1306,7 +1313,7 @@ Using tab-and-go completion style
 *** Company
 #+begin_src elisp
   (use-package company
-    :disabled
+    :disabled t
     :ensure t
     :config
     (setq company-tooltip-align-annotations t
