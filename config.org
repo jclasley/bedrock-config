@@ -255,28 +255,17 @@ Highlight todos in prog mode derivatives
             ("NOTE"       success bold)
             ("DEPRECATED" font-lock-doc-face bold))))
 #+end_src
-
-** Theme
-Dracula (kinda mid comapared to doom-dracula)
-#+begin_src elisp
-    ;; theme
-  (use-package dracula-theme
-    :config
-    (add-to-list 'custom-theme-load-path "~/bedrock/themes")
-    :init
-    ;; (load-theme 'dracula t)
-  )
-
-#+end_src
+** Appearance
+*** Theme
 
 Doom themes
 #+begin_src elisp
   (use-package doom-themes
   :ensure t
+  :custom
+  (doom-themes-enable-bold t)
+  (doom-themes-enable-italic t)
   :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
   (load-theme 'doom-dracula t)
 
   ;; Enable flashing mode-line on errors
@@ -285,6 +274,128 @@ Doom themes
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 #+end_src
+
+**** Modus themes
+Can try and mess around with these if I want
+#+begin_src elisp
+  (use-package modus-themes
+    :ensure t
+#+end_src
+
+Disable it!
+#+begin_src elisp
+  ;; :disabled t
+#+end_src
+
+
+***** Customization
+#+begin_src elisp
+  :custom
+#+end_src
+
+
+Reload the theme after we change some of the options
+#+begin_src elisp
+  (modus-themes-custom-auto-reload t)
+#+end_src
+
+
+Reference for custom options: https://protesilaos.com/emacs/modus-themes#h:9001527a-4e2c-43e0-98e8-3ef72d770639
+
+Use more bold (keywords) and italic constructs
+#+begin_src elisp
+  (modus-themes-bold-constructs t)
+  (modus-themes-bold-constructs t)
+#+end_src
+
+Try out this example and see what it looks like -- might work
+Affects the completion framework
+#+begin_src elisp
+  (modus-themes-completions
+      '((matches . (extrabold underline))))
+#+end_src
+
+More advanced customizations
+https://protesilaos.com/emacs/modus-themes#h:f4651d55-8c07-46aa-b52b-bed1e53463bb
+
+More intense themes
+#+begin_src elisp
+  (modus-themes-common-palette-overrides
+      `(
+        ;; From the section "Make the mode line borderless"
+        (border-mode-line-active unspecified)
+        (border-mode-line-inactive unspecified)
+
+        ;; From the section "Make matching parenthesis more or less intense"
+        (bg-paren-match bg-magenta-intense)
+        (underline-paren-match fg-main)
+
+        ;; And expand the preset here.  Note that the ,@ works because
+        ;; we use the backtick for this list, instead of a straight
+        ;; quote.
+        ,@modus-themes-preset-overrides-intense))
+#+end_src
+
+End the customization and load the theme
+#+begin_src elisp
+    :config
+  (load-theme 'modus-vivendi-tinted 't))
+#+end_src
+
+
+**** ef themes
+
+Also by prot, these are little sexier
+https://protesilaos.com/emacs/ef-themes
+
+#+begin_src elisp
+  (use-package ef-themes
+    :ensure t
+    :disabled t
+    :config
+    ;; disable other themes
+    (mapc #'disable-theme custom-enabled-themes)
+    (load-theme 'ef-owl t))
+#+end_src
+
+#+RESULTS:
+: t
+
+*** popper
+#+begin_src elisp
+  (use-package popper
+    :ensure t ; or :straight t
+    :bind (("C-`"   . popper-toggle)
+           ("s-."   . popper-cycle)
+           ("C-M-`" . popper-toggle-type)
+           ("C-<escape>" . popper-kill-latest-popup))
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            "\\*Async Shell Command\\*"
+            "*vterm*"
+  		  "*scratch*"
+            help-mode
+            compilation-mode))
+    (popper-mode +1)
+    (popper-echo-mode +1))   
+#+end_src
+
+#+RESULTS:
+: popper-kill-latest-popup
+
+*** solaire mode
+Darkens non-file-associated buffers
+[[https://github.com/hlissner/emacs-solaire-mode][Reference]]
+#+begin_src elisp
+  (use-package solaire-mode
+    :ensure t
+    :init
+    (solaire-global-mode +1))
+#+end_src
+
+#+RESULTS:
 
 
 ** Modeline
@@ -543,30 +654,6 @@ Delete a window more easily
 #+begin_src elisp
   (keymap-set my/window-map "m" '("maximize" . maximize-window))
 #+end_src
-
-*** popper
-#+begin_src elisp
-  (use-package popper
-    :ensure t ; or :straight t
-    :bind (("C-`"   . popper-toggle)
-           ("s-."   . popper-cycle)
-           ("C-M-`" . popper-toggle-type)
-           ("C-<escape>" . popper-kill-latest-popup))
-    :init
-    (setq popper-reference-buffers
-          '("\\*Messages\\*"
-            "Output\\*$"
-            "\\*Async Shell Command\\*"
-            "*vterm*"
-  		  "*scratch*"
-            help-mode
-            compilation-mode))
-    (popper-mode +1)
-    (popper-echo-mode +1))   
-#+end_src
-
-#+RESULTS:
-: popper-kill-latest-popup
 
 *** NeoTree
 NeoTree is an alternative to treemacs
@@ -1342,6 +1429,9 @@ Define a keymap for errors
           (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
            "v0.20.3"
            "tsx/src"))
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+                    "v0.20.3"
+                    "typescript/src")
           (elisp "https://github.com/Wilfred/tree-sitter-elisp")
           (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
           (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
@@ -1528,10 +1618,12 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
 
 [[https://web-mode.org/][Web mode]] is sick
 #+begin_src elisp
-      (use-package web-mode
-        :ensure t
-        :config
-        (add-to-list 'auto-mode-alist '("\\.[tj]sx" . web-mode)))
+  (use-package web-mode
+    :ensure t
+    :hook
+    (web-mode . lsp-deferred)
+    :config
+    (add-to-list 'auto-mode-alist '("\\.[tj]sx" . web-mode)))
 #+end_src
 
 
@@ -1565,16 +1657,16 @@ Reference [[https://github.com/clojure-emacs/cider][here]]
 
     ;; add the server
     (lsp-register-client (make-lsp-client
-  			:new-connection (lsp-stdio-connection '("java" "-jar" "/Users/LASLEJX1/.pkl/lsp.jar"))
-  			:activation-fn (lsp-activate-on "pkl")
-  			:server-id 'pkl)))
+            :new-connection (lsp-stdio-connection '("java" "-jar" "/Users/LASLEJX1/.pkl/lsp.jar"))
+            :activation-fn (lsp-activate-on "pkl")
+            :server-id 'pkl)))
 
 
 
-  (use-package pkl-mode
-    :vc (:url "https://github.com/sin-ack/pkl-mode" :rev :newest)
-    :hook
-    (pkl-mode . lsp-deferred))
+  ;; (use-package pkl-mode
+  ;;   :vc (:url "https://github.com/sin-ack/pkl-mode" :rev :newest)
+  ;;   :hook
+  ;;   (pkl-mode . lsp-deferred))
 #+end_src
 
 #+RESULTS:
