@@ -91,20 +91,7 @@
 
     ;; Add the time to the tab-bar, if visible
 
-    (custom-set-variables
-     ;; custom-set-variables was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     '(package-selected-packages
-       '(dracula-theme company use-package use-package-chords key-chord evil which-key)))
-    (custom-set-faces
-     ;; custom-set-faces was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     )
-
+    
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;;; My stuff
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -118,6 +105,18 @@ Turn off the damn bell
 #+begin_src elisp
   (setq ring-bell-function nil)
 #+end_src
+
+** Convenience functions
+Easily copy the file name
+#+begin_src elisp
+  (defun copy-filename ()
+    (interactive)
+    (kill-new (buffer-file-name)))
+#+end_src
+
+#+RESULTS:
+: copy-filename
+
 
 * Keymaps
 Make some keymaps for nice viewing
@@ -166,40 +165,25 @@ Sticky scroll! My own package 🥲
 
 Show indentation lines
 #+begin_src elisp
-  (use-package highlight-indent-guides
-    :ensure t
-    :hook
-    (prog-mode . highlight-indent-guides-mode)
-    (yaml-mode . highlight-indent-guides-mode)
-    :config
-    (setq highlight-indent-guides-method 'bitmap
-          highlight-indent-guides-auto-enabled nil)
-    (set-face-background 'highlight-indent-guides-odd-face "gray45")
-    (set-face-background 'highlight-indent-guides-even-face "gray45")
-    (set-face-foreground 'highlight-indent-guides-character-face "gray45"))
+  ;; (use-package highlight-indent-guides
+  ;;   :ensure t
+  ;;   :hook
+  ;;   (prog-mode . highlight-indent-guides-mode)
+  ;;   (yaml-mode . highlight-indent-guides-mode)
+  ;;   :config
+  ;;   (setq highlight-indent-guides-method 'bitmap
+  ;;         highlight-indent-guides-auto-enabled nil)
+  ;;   (set-face-background 'highlight-indent-guides-odd-face "gray45")
+  ;;   (set-face-background 'highlight-indent-guides-even-face "gray45")
+  ;;   (set-face-foreground 'highlight-indent-guides-character-face "gray45"))
 #+end_src
 
-
-Bring this in for use later
-#+begin_src elisp
-  (use-package dash :ensure t)
-#+end_src
-
-Search
-#+begin_src elisp
-  (use-package ag :ensure t)
-#+end_src
-
-Icons
-#+begin_src elisp
-    (use-package all-the-icons
-      :ensure t)
-#+end_src
 
 Lightning fast scrolling!
 [[https://github.com/jdtsmith/ultra-scroll][Ref]]
 #+begin_src elisp
   (use-package ultra-scroll
+    :vc (:url "https://github.com/jdtsmith/ultra-scroll")
   ;:load-path "~/code/emacs/ultra-scroll" ; if you git clone'd instead of package-vc-install
   :init
   (setq scroll-conservatively 101 ; important!
@@ -207,7 +191,6 @@ Lightning fast scrolling!
   :config
   (ultra-scroll-mode 1))
 #+end_src
-
 
 #+begin_src elisp
   (winner-mode 1)
@@ -227,6 +210,9 @@ Lightning fast scrolling!
         '(("melpa" . "https://melpa.org/packages/")
           ("org" . "https://orgmode.org/elpa/")
           ("elpa" . "https://elpa.gnu.org/packages/")))
+
+  (use-package key-chord
+    :ensure t)
 
   (use-package use-package-chords
     :ensure t
@@ -255,8 +241,18 @@ Highlight todos in prog mode derivatives
             ("NOTE"       success bold)
             ("DEPRECATED" font-lock-doc-face bold))))
 #+end_src
+
 ** Appearance
 *** Theme
+
+Dracula
+#+begin_src elisp
+  (use-package dracula-theme
+    :ensure t)
+#+end_src
+
+#+RESULTS:
+
 
 Doom themes
 #+begin_src elisp
@@ -264,9 +260,7 @@ Doom themes
   :ensure t
   :custom
   (doom-themes-enable-bold t)
-  (doom-themes-enable-italic t)
-  :config
-  (load-theme 'doom-dracula t)
+  (doom-themes-enable-italic t)  
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -284,7 +278,7 @@ Can try and mess around with these if I want
 
 Disable it!
 #+begin_src elisp
-  ;; :disabled t
+  :disabled t
 #+end_src
 
 
@@ -362,6 +356,12 @@ https://protesilaos.com/emacs/ef-themes
 
 #+RESULTS:
 
+**** Pick theme
+#+begin_src elisp
+  (load-theme 'dracula t)
+#+end_src
+
+
 *** popper
 #+begin_src elisp
   (use-package popper
@@ -376,7 +376,8 @@ https://protesilaos.com/emacs/ef-themes
             "Output\\*$"
             "\\*Async Shell Command\\*"
             "*vterm*"
-  		  "*scratch*"
+          "*scratch*"
+          "^\\*cider"
             help-mode
             compilation-mode))
     (popper-mode +1)
@@ -408,13 +409,15 @@ Darkens non-file-associated buffers
 #+begin_src elisp
   (use-package doom-modeline
     :ensure t
-    :disabled t
     :config
     (setq doom-modeline-minor-modes nil)
     :hook
     (lsp-mode . (lambda () (setq-local doom-modeline-buffer-name nil)))
     :init (doom-modeline-mode 1))
 #+end_src
+
+#+RESULTS:
+| lambda | nil | (setq-local doom-modeline-buffer-name nil) |
 
 *** Spaceline
 https://github.com/TheBB/spaceline?tab=readme-ov-file#introduction
@@ -427,6 +430,7 @@ Use a nice lil icon one for it
 https://github.com/domtronn/spaceline-all-the-icons.el
 #+begin_src elisp
   (use-package spaceline-all-the-icons
+    :disabled t
     :ensure t
     :after spaceline all-the-icons
     :requires all-the-icons
@@ -458,56 +462,60 @@ Make a keymap for =project.el=
 
 
 #+begin_src elisp
-    (use-package emacs
-      :custom
-      (tab-always-indent 'complete)
-      ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-      ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-      ;; setting is useful beyond Corfu.
-      (read-extended-command-predicate #'command-completion-default-include-p)
-      (enable-recursive-minibuffers t)
-      ;; more comfort
-      (line-spacing 3)
-      (scroll-conservatively 101)
-      ;; use a very narrow window divider
-      (window-divider-default-right-width 1)
-      (window-divider-default-bottom-width 1)
-      (scroll-bar-mode nil)
-      (xref-prompt-for-identifier nil)
-      (desktop-save-mode t)
-      (cursor-style 'bar)
-      :config 
-      (electric-pair-mode 1)
-      ;; wrap on whitespace
-      (global-word-wrap-whitespace-mode 1)
-      (auto-save-mode -1) ; turn off autosave
-      (setq auto-save-timeout 3)
-      (setq ediff-window-setup-function #'ediff-setup-windows-plain)
-      (menu-bar-bottom-and-right-window-divider)
-      (scroll-bar-mode -1)
-      ;; font installed from https://www.jetbrains.com/lp/mono/
-      (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
-      :bind
-      ("C-<return>" . recenter)
-      ("M-<backspace>" . backward-kill-word)
-      ("C-M-RET" . xref-find-references)
-      ("s-K" . kill-buffer-and-window)
-      ("C-M-." . xref-find-definitions-other-window)
-      ("C-q" . bury-buffer)
-    ("M-Z" . zap-up-to-char)
-      :init
-      (defun crm-indicator (args)
-        (cons (format "[CRM%s] %s"
-                (replace-regexp-in-string
-                 "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                 crm-separator)
-                (car args))
-        (cdr args)))
-      (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+  (use-package emacs
+    :custom
+    (tab-always-indent 'complete)
+    ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+    ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+    ;; setting is useful beyond Corfu.
+    (read-extended-command-predicate #'command-completion-default-include-p)
+    (enable-recursive-minibuffers t)
+    ;; more comfort
+    (line-spacing 3)
+    (scroll-conservatively 101)
+    ;; use a very narrow window divider
+    (window-divider-default-right-width 1)
+    (window-divider-default-bottom-width 1)
+    (scroll-bar-mode nil)
+    (xref-prompt-for-identifier nil)
+    (desktop-save-mode t)
+    (cursor-style 'bar)
+    ;; make it easier to see the focused window
+    (cursor-in-non-selected-windows nil)
+    :config 
+    (electric-pair-mode 1)
+    ;; wrap on whitespace
+    (global-word-wrap-whitespace-mode 1)
+    (auto-save-mode -1) ; turn off autosave
+    (setq auto-save-timeout 3)
+    (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+    (menu-bar-bottom-and-right-window-divider)
+    (scroll-bar-mode -1)
+    ;; font installed from https://www.jetbrains.com/lp/mono/
+    (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
+    :bind
+    ("C-<return>" . recenter)
+    ("M-<backspace>" . backward-kill-word)
+    ("C-M-RET" . xref-find-references)
+    ("s-K" . kill-buffer-and-window)
+    ("C-M-." . xref-find-definitions-other-window)
+    ("C-q" . bury-buffer)
+  ("M-Z" . zap-up-to-char)
+  ("C-M-S-<right>" . forward-sexp)
+  ("C-M-S-<left>" . backward-sexp)
+    :init
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+              (replace-regexp-in-string
+               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+               crm-separator)
+              (car args))
+      (cdr args)))
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
 
 #+RESULTS:
-: zap-up-to-char
+: backward-sexp
 
 #+begin_src elisp
   (use-package kmacro
@@ -626,9 +634,11 @@ Integrate persp and projectile
 ** Icons
 #+begin_src elisp
   (use-package all-the-icons
+    :ensure t
     :if (display-graphic-p))
 
   (use-package nerd-icons
+    :ensure t
     :if (display-graphic-p))
 #+end_src
 
@@ -638,30 +648,31 @@ Integrate persp and projectile
 ** Tabs
 [[https://github.com/ema2159/centaur-tabs][Reference]]
 #+begin_src elisp
-    (use-package centaur-tabs
-      :ensure t
-      :bind
-      ("s-}" . centaur-tabs-forward)
-      ("s-{" . centaur-tabs-backward)
-      ("M-s-<left>" . centaur-tabs-backward)
-      ("M-s-<right>" . centaur-tabs-forward)
-      :config
-      (setq centaur-tabs-set-icons t
-            centaur-tabs-icon-type 'all-the-icons
-            centaur-tabs-style "bar"
-            centaur-tabs-height 30
-            centaur-tabs-set-bar 'left
-            centaur-tabs-set-close-button nil
-            centaur-tabs-show-new-tab-button nil
-            centaur-tabs-cycle-scope 'tabs
-            centaur-tabs-set-modified-marker t)
-      (centaur-tabs-change-fonts "DroidSansMono Nerd Font" 120)
-      :init
-      (centaur-tabs-mode 1)
-      :hook
-      ;; turn off centaur tabs in these modes
-      (dired-mode . centaur-tabs-local-mode)
-      (vterm-mode . centaur-tabs-local-mode))
+  (use-package centaur-tabs
+    :ensure t
+    :disabled t
+    :bind
+    ("s-}" . centaur-tabs-forward)
+    ("s-{" . centaur-tabs-backward)
+    ("M-s-<left>" . centaur-tabs-backward)
+    ("M-s-<right>" . centaur-tabs-forward)
+    :config
+    (setq centaur-tabs-set-icons t
+          centaur-tabs-icon-type 'all-the-icons
+          centaur-tabs-style "bar"
+          centaur-tabs-height 30
+          centaur-tabs-set-bar 'left
+          centaur-tabs-set-close-button nil
+          centaur-tabs-show-new-tab-button nil
+          centaur-tabs-cycle-scope 'tabs
+          centaur-tabs-set-modified-marker t)
+    (centaur-tabs-change-fonts "DroidSansMono Nerd Font" 120)
+    :init
+    (centaur-tabs-mode 1)
+    :hook
+    ;; turn off centaur tabs in these modes
+    (dired-mode . centaur-tabs-local-mode)
+    (vterm-mode . centaur-tabs-local-mode))
 #+end_src
 
 ** Windows
@@ -698,19 +709,23 @@ Function to open up the projectile root
 #+end_src
 
 #+begin_src elisp
-  (use-package neotree
-    :disabled
-    :ensure t
-    :config
-    (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
-    :bind
-    (("<f8>" . neotree-project-dir)))
+    (use-package neotree
+      :ensure t
+      :config
+      (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+      :bind
+      (("<f8>" . neotree-project-dir)
+       ("C-<f8>" . neotree-project-dir)))
 #+end_src
+
+#+RESULTS:
+: neotree-project-dir
 
 *** treemacs
 #+begin_src elisp
   (use-package treemacs
     :ensure t
+    :disabled t
     :defer t
     :config
     (progn
@@ -832,10 +847,12 @@ Use all-the-icons
     (use-package avy
       :ensure t
       :bind
+      (("C-t" . avy-goto-char-timer)
+       ("C-s" . avy-goto-char)
       (:map my/goto-map
             ("l" . avy-goto-line)
             ("t" . avy-goto-char-timer)
-            ("'" . avy-resume)))
+            ("'" . avy-resume))))
 #+end_src
 
 #+begin_src elisp
@@ -844,24 +861,6 @@ Use all-the-icons
     :config
     ;; TODO -- suffix for not ignoring bitbucket vendors
     
-    ;; put an option to ignore vendor files
-    (transient-insert-suffix 'rg-menu "-h" '(1 "-v" "No vendor" "--glob='!vendor/*'"))
-
-    ;; this is for the RESULTS buffer
-    ;; on by default, ignores vendor
-    (rg-define-toggle "--glob='!vendor/*'" "v" t)
-    ;; off by default, ignores test files
-    (rg-define-toggle "--glob='!*test.go' --glob='!it/*'" (kbd "C-c t"))
-
-    
-    (rg-define-search search-ignore-vendor-test
-      "Ignore vendor and test directories for the search"
-      :query ask
-      :files current ; use the current buffer's file type to find it
-      :dir project
-      :flags ("--glob '!vendor/*'" "--glob '!*test*'"))
-    
-    (rg-menu-transient-insert "Search" "f" "Project" 'search-ignore-vendor-test)
     (rg-enable-default-bindings (kbd "C-c r")))
 
 #+end_src
@@ -876,9 +875,9 @@ Better-jumper allows us to set marks and jump around pretty easily
     (define-key global-map (kbd "C-j") `("jump" . ,my/jump-map))
     :bind
     (:map my/jump-map
-  		("f" . better-jumper-jump-forward)
-  		("b" . better-jumper-jump-backward)
-  		("j" . better-jumper-set-jump)))
+  		("C-f" . better-jumper-jump-forward)
+  		("C-b" . better-jumper-jump-backward)
+  		("C-j" . better-jumper-set-jump)))
 #+end_src
 
 #+RESULTS:
@@ -900,33 +899,33 @@ Function to delete the marked text and exit god mode (similar to =C= in vim)
 
 https://github.com/emacsorphanage/god-mode
 #+begin_src elisp
-    (use-package god-mode
-      :ensure t
-      :bind
-      ("<escape>" . #'god-mode)
-      ("C-z" . repeat)
-      (:map god-local-mode-map
-            ("i" . god-mode)
-            ("a" . beginning-of-line-text)
-            ("[" . backward-paragraph)
-            ("]" . forward-paragraph)
-            ("C" . my/god-mode-change))
-      :chords
-      ("jk" . god-mode)
-      :config
-      (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
+   (use-package god-mode
+     :ensure t
+     :bind
+     ("<escape>" . #'god-mode-all)
+     ("C-z" . repeat)
+     (:map god-local-mode-map
+           ("i" . god-mode-all)
+           ("a" . beginning-of-line-text)
+           ("[" . backward-paragraph)
+           ("]" . forward-paragraph)
+           ("C" . my/god-mode-change))
+     :chords
+     ("jk" . god-mode-all)
+     :config
+     (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
 
-      (defun god-mode-cursor ()
-        (if god-local-mode
-            (setq-local cursor-type 'box)
-          (setq-local cursor-type 'bar)))
-      (add-hook 'post-command-hook #'god-mode-cursor)
-      :init
-      (god-mode))
+     (defun god-mode-cursor ()
+       (if god-local-mode
+           (setq-local cursor-type 'box)
+         (setq-local cursor-type 'bar)))
+     (add-hook 'post-command-hook #'god-mode-cursor)
+     :init
+     (god-mode))
 #+end_src
 
 #+RESULTS:
-: god-mode
+: god-mode-all
 
 
 * Hyperbole
@@ -1049,7 +1048,11 @@ Change the way vertico looks based on the command I'm using
     :ensure t
     :custom
     (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles basic partial-completion)))))
+  (completion-category-overrides '((file (styles basic partial-completion))
+                                   (lsp-capf (styles orderless)))) ; Add this line
+  :config
+  ;; Configure orderless to work better with LSP
+  (setq orderless-matching-styles '(orderless-literal orderless-regexp)))
 #+end_src
 
 ** Completion
@@ -1057,43 +1060,49 @@ Using tab-and-go completion style
 
 *** Company
 #+begin_src elisp
-  ;; (use-package company
-  ;;   :ensure t
-  ;;   :config
-  ;;   (setq company-tooltip-align-annotations t
-  ;; 		 ;;         company-show-quick-access t
-  ;;         company-files-exclusions '(".git/" ".DS_Store")
-  ;;         ;; use letters instead of icons
-  ;;         company-format-margin-function #'company-text-icons-margin
-  ;;         ;; company-text-icons-add-background t
-  ;;         ;; make it so that I do it myself, please
-  ;;         company-idle-delay 0.3)
-  ;;   ;; customize the annotation faces
-  ;;   ;; (custom-set-faces
-  ;;   ;;  '(company-tooltip-annotation ((t (:foreground "dark gray")))))
-  ;;   ;; (
-  ;;    (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
-  ;;   :bind
-  ;;   ("M-i" . company-manual-begin)
-  ;;   (:map company-active-map
-  ;;         ([tab] . company-complete-common-or-cycle)
-  ;;         ("<escape>" . company-abort))
-  ;;   :init
-  ;;   (global-company-mode 1))
+  (use-package company
+    :disabled t
+    :ensure t
+    :config
+    (setq company-tooltip-align-annotations t
+        ;;         company-show-quick-access t
+          company-files-exclusions '(".git/" ".DS_Store")
+          ;; use letters instead of icons
+          company-format-margin-function #'company-text-icons-margin
+          ;; company-text-icons-add-background t
+          ;; make it so that I do it myself, please
+          company-idle-delay 0.3)
+    ;; customize the annotation faces
+    ;; (custom-set-faces
+    ;;  '(company-tooltip-annotation ((t (:foreground "dark gray")))))
+    ;; (
+     (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
+    :bind
+    ("M-i" . company-manual-begin)
+    (:map company-active-map
+          ([tab] . company-complete-common-or-cycle)
+          ("<escape>" . company-abort))
+    :init
+    (global-company-mode 1))
 #+end_src
+
+#+RESULTS:
 
 Company-box shows nice popups (and documentation) for selection candidates
 #+begin_src elisp
   (use-package company-box
+    :disabled t
     :ensure t
     :hook (company-mode . company-box-mode))
 #+end_src
 
+#+RESULTS:
+
 Really turn off company mode
 #+begin_src elisp
-  (defun turn-off-company ()
-    (company-mode -1))
-    (add-hook 'prog-mode-hook #'turn-off-company)
+  ;; (defun turn-off-company ()
+  ;;   (company-mode -1))
+  ;;   (add-hook 'prog-mode-hook #'turn-off-company)
 #+end_src
 
 
@@ -1111,27 +1120,31 @@ Not using it for now, trying out company
     (corfu-cycle t)
     (corfu-preselect 'prompt)
     (corfu-preview-current nil)
-    (corfu-quit-at-boundary nil)
-    ;; corfu popup
-    (corfu-echo-delay '(1.0 . 1.0))
+    (corfu-quit-at-boundary 'separator)
+    (corfu-auto t)
+    ;; popup
+    (corfu-popupinfo-mode t)
+    (corfu-popupinfo-delay '(1.0 . 0.5))
     :config
     :bind
     (:map corfu-map
-          ("SPC" . corfu-insert-separator)
-        ("TAB" . corfu-next)
-        ([tab] . corfu-next)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous))
+          ([tab] . corfu-next)
+          ("<return>" . corfu-insert)
+          ("<escape>" . corfu-quit)
+          ("M-SPC" . corfu-insert-separator))
     :init
     (global-corfu-mode 1))
 #+end_src
+
+#+RESULTS:
+: corfu-insert-separator
 
 *** Cape
 https://github.com/minad/cape
 #+begin_src elisp
     (use-package cape
-  	:disabled
-  	:ensure t
+      :disabled t
+    :ensure t
     ;; Bind prefix keymap providing all Cape commands under a mnemonic key.
     ;; Press C-c p ? to for help.
     :bind ("C-c C-p" . cape-prefix-map) ;; Alternative key: M-<tab>, M-p, M-+
@@ -1150,12 +1163,18 @@ https://github.com/minad/cape
     (add-hook 'completion-at-point-functions #'cape-elisp-block)
     ;; (add-hook 'completion-at-point-functions #'cape-history)
     ;; ...
+    ;; from Claude, probably wrong?
+    (add-hook 'clojure-mode-hook
+            (lambda ()
+              (setq-local completion-at-point-functions
+                          (list (cape-capf-super #'cider-complete-at-point
+                                                 #'lsp-completion-at-point)
+                                #'tags-completion-at-point-function))))
   )
 #+end_src
 
 
 #+RESULTS:
-: cape-prefix-map
 
 ** Consult
 A function to search the current directory. If something is under point, suggest that as default
@@ -1173,6 +1192,8 @@ A function to search the current directory. If something is under point, suggest
     :bind
     ;; meow SPC x b
     (("C-c b" . consult-bookmark)
+     ("M-'" . consult-register-store)
+     ("M-\"" . consult-register)
      :map my/consult-map
           (("b" . consult-project-buffer)
           ("B" . consult-buffer)
@@ -1201,10 +1222,6 @@ Use consult-xref for xref! So great
     (setq xref-show-xrefs-function #'consult-xref))
 #+end_src
 
-#+RESULTS:
-: t
-
-
 ** Marginalia
 #+begin_src elisp
   ;; Enable rich annotations using the Marginalia package
@@ -1218,12 +1235,14 @@ Use consult-xref for xref! So great
 
     ;; The :init section is always executed.
     :init
-
     ;; Marginalia must be activated in the :init section of use-package such that
     ;; the mode gets enabled right away. Note that this forces loading the
     ;; package.
     (marginalia-mode))
 #+end_src
+
+#+RESULTS:
+: marginalia-cycle
 
 ** Embark
 #+begin_src elisp
@@ -1280,6 +1299,17 @@ Use consult-xref for xref! So great
     (("C-c v" . vterm)))
 #+end_src
 
+* AI
+claude code integration -- pretty slick
+https://github.com/stevemolitor/claude-code.el
+#+begin_src elisp
+  (use-package claude-code :ensure t
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :config (claude-code-mode)
+  :custom
+  (claude-code-terminal-backend 'vterm)
+  :bind ("C-c c" . claude-code-transient))
+#+end_src
 
 * Languages
 TODO: have to get xref working
@@ -1312,20 +1342,24 @@ Define a keymap for errors
 #+end_src
 
 ** treesit
+
 #+begin_src elisp
+    
   (setq treesit-language-source-alist
         '((gomod "https://github.com/camdencheek/tree-sitter-go-mod")
           (go "https://github.com/tree-sitter/tree-sitter-go" "v0.19.1")
-          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
-           "v0.20.3"
+          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"  		
+           "v0.23.2"
            "tsx/src"))
           (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
-                    "v0.20.3"
+                    "v0.23.2"
                     "typescript/src")
           (elisp "https://github.com/Wilfred/tree-sitter-elisp")
           (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
           (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
+  (setq treesit-font-lock-level 4)
 #+end_src
+
 
 ** yaml
 #+begin_src elisp
@@ -1354,10 +1388,17 @@ Don't watch vendor dirs
   (use-package lsp-mode
     :ensure t
     :config
-    (setq lsp-headerline-breadcrumb-enable t
-          lsp-enable-file-watchers nil
+    (setq lsp-headerline-breadcrumb-enable nil
           ;; show warns in flycheck
           lsp-diagnostics-flycheck-default-level 'warning)
+    ;; from Claude to make orderless work better?
+    (setq lsp-completion-provider :none)
+    ;; (setq lsp-file-watch-ignored-files
+    ;;     (append lsp-file-watch-ignored-files
+    ;;             '(".*~$" "#.*#$" "\\.#.*$")))
+    ;; (setq lsp-file-watch-ignored-directories
+    ;;     (append lsp-file-watch-ignored-directories
+    ;;             '("[/\\\\]\\.emacs\\.d$")))
     :hook
     ;; go
     ((go-mode . lsp-deferred)
@@ -1367,6 +1408,9 @@ Don't watch vendor dirs
      (rust-mode . lsp-deferred)
      (go-mode . lsp-format-and-organize-imports)))
 #+end_src
+
+#+RESULTS:
+| lsp-format-and-organize-imports | lsp-deferred | go-guru-hl-identifier-mode | #[nil ((flycheck-golangci-lint-setup) (setq flycheck-local-checkers '((lsp (next-checkers golangci-lint))))) nil] | flycheck-golangci-lint-setup | doom-modeline-env-setup-go |
 
 *** LSP extensions
 Peek is awesome
@@ -1491,19 +1535,26 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
     :ensure t)
 #+end_src
 
+** TSX
 
-** Rust
+Turn off lsp formatting in typescript buffers
 #+begin_src elisp
-          (use-package rust-mode
-            :ensure t
-            :hook
-            (rust-mode . lsp-))
+  (defun disable-lsp-formatting ()
+    (setq-local lsp-typescript-format-enable nil)
+    (setq-local lsp-javascript-format-enable nil))
+
+  ;; (add-hook 'tsx-ts-mode-hook #'disable-lsp-formatting)
+  ;; (add-hook 'typescript-ts-mode-hook #'disable-lsp-formatting)
 #+end_src
 
-** TSX
+#+RESULTS:
+: disable-lsp-formatting
+
+
 #+begin_src elisp
-  (add-to-list 'auto-mode-alist '("\\.[jt]sx?" . tsx-ts-mode))
-  (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
+
+  (add-hook 'tsx-ts-mode-hook #'lsp-organize-imports)
+   (add-hook 'typescript-ts-mode-hook #'lsp-organize-imports)
 #+end_src
 
 [[https://web-mode.org/][Web mode]] is sick
@@ -1513,14 +1564,25 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
     :hook
     (web-mode . lsp-deferred)
     :config
-    (add-to-list 'auto-mode-alist '("\\.[tj]sx" . web-mode)))
+    (add-to-list 'auto-mode-alist '(".html" . web-mode)))
 #+end_src
 
+*** prettier
+#+begin_src elisp
+    (use-package prettier
+      :ensure t
+      :hook
+      (tsx-ts-mode . prettier-mode)
+      (typescript-ts-mode . prettier-mode))
+#+end_src
 
 ** Clojure mode
 #+begin_src elisp
-      (use-package clojure-mode
-        :ensure t)
+  (use-package clojure-mode
+    :ensure t
+    :hook
+    (clojure-mode . lsp-deferred)
+    (clojure-mode . lsp-format-and-organize-imports))
 #+end_src
 
 Paredit is awesome
@@ -1533,9 +1595,14 @@ Paredit is awesome
 Cider enables running a REPL in a project (among other things)
 Reference [[https://github.com/clojure-emacs/cider][here]]
 #+begin_src elisp
-    (use-package cider
-      :ensure t)
+            (use-package cider
+              :ensure t
+              :config
+              (setq cider-completion-use-context t))
 #+end_src
+
+#+RESULTS:
+: t
 
 
 *** PKL
@@ -1798,6 +1865,10 @@ Create the custom agenda command for super agenda
                                 ("d" "developer log")
                                 ("dg" "game" entry
                                  (file+datetree "~/org/game_dev_log.org")
+                                 "* %?"
+                                 :empty-lines-after 1)
+                                ("db" "billflower" entry
+                                 (file+datetree "~/org/billflower_dev_log.org")
                                  "* %?"
                                  :empty-lines-after 1)))
 
