@@ -35,7 +35,6 @@
     ;; which-key: shows a popup of available keybindings when typing a long key
     ;; sequence (e.g. C-x ...)
     (use-package which-key
-      :ensure t
       :config
       (setq which-key-keymap-history t)
       (which-key-enable-god-mode-support)
@@ -201,11 +200,12 @@ Lightning fast scrolling!
 #+begin_src elisp
   (use-package ultra-scroll
   ;:load-path "~/code/emacs/ultra-scroll" ; if you git clone'd instead of package-vc-install
-  :init
-  (setq scroll-conservatively 101 ; important!
-        scroll-margin 0) 
-  :config
-  (ultra-scroll-mode 1))
+    :vc (:url "https://github.com/jdtsmith/ultra-scroll")
+    :init
+    (setq scroll-conservatively 101 ; important!
+  	scroll-margin 0) 
+    :config
+    (ultra-scroll-mode 1))
 #+end_src
 
 
@@ -218,20 +218,20 @@ Lightning fast scrolling!
 
 #+begin_src elisp
 
+    ;; get use-package to behave
+    (setq package-archives
+          '(("melpa" . "https://melpa.org/packages/")
+            ("org" . "https://orgmode.org/elpa/")
+            ("elpa" . "https://elpa.gnu.org/packages/")
+  	  ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
-
-  (setq initial-buffer-choice "~/bedrock/config.org")
-
-  ;; get use-package to behave
-  (setq package-archives
-        '(("melpa" . "https://melpa.org/packages/")
-          ("org" . "https://orgmode.org/elpa/")
-          ("elpa" . "https://elpa.gnu.org/packages/")))
-
-  (use-package use-package-chords
-    :ensure t
-    :config (key-chord-mode 1))
+    (use-package use-package-chords
+      :ensure t
+      :config (key-chord-mode 1))
 #+end_src
+
+#+RESULTS:
+: t
 
 rainbow delimiters
 #+begin_src elisp
@@ -255,6 +255,18 @@ Highlight todos in prog mode derivatives
             ("NOTE"       success bold)
             ("DEPRECATED" font-lock-doc-face bold))))
 #+end_src
+
+** Source in scripts
+Load the larger form customizations segregated by their own files
+#+begin_src elisp
+  (let ((dir (expand-file-name "~/emacs/scripts")))
+  (dolist (f (directory-files dir t ".el"))
+	    (load-file f)))
+#+end_src
+
+#+RESULTS:
+
+
 ** Appearance
 *** Theme
 
@@ -273,6 +285,14 @@ Doom themes
   ;; or for treemacs users
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
+#+end_src
+**** Dracula
+#+begin_src elisp
+  (use-package dracula-theme
+    :ensure t
+    :disabled t
+    :init
+    (load-theme 'dracula t))
 #+end_src
 
 **** Modus themes
@@ -305,7 +325,7 @@ Reference for custom options: https://protesilaos.com/emacs/modus-themes#h:90015
 Use more bold (keywords) and italic constructs
 #+begin_src elisp
   (modus-themes-bold-constructs t)
-  (modus-themes-bold-constructs t)
+  (modus-themes-italic-constructs t)
 #+end_src
 
 Try out this example and see what it looks like -- might work
@@ -321,27 +341,42 @@ https://protesilaos.com/emacs/modus-themes#h:f4651d55-8c07-46aa-b52b-bed1e53463b
 More intense themes
 #+begin_src elisp
   :config
-      (setq modus-themes-common-palette-overrides
-          `(
-            ;; From the section "Make the mode line borderless"
-            (border-mode-line-active unspecified)
-            (border-mode-line-inactive unspecified)
+  ;; dracula inspired colore scheme
+  (setq modus-themes-common-palette-overrides
+      '((type "#FF79C6")
+      (builtin "#FF79C6")
+      (constant "#F1FA8C")
+      (variable "#8BE9FD")
+      (keyword "#50FA7B")
+      (string "#FFB86C")
+      (rx-construct "#39b859")
+      (rx-backslash "#ba7a36")
+      (property "#acfadc")
+      (comment "#6272A4")
+      (preprocessor red)
+      (fnname "#BD93F9"))) 
+      ;; (setq modus-themes-common-palette-overrides
+      ;;     `(
+      ;;       ;; From the section "Make the mode line borderless"
+      ;;       (border-mode-line-active unspecified)
+      ;;       (border-mode-line-inactive unspecified)
 
-            ;; From the section "Make matching parenthesis more or less intense"
-            (bg-paren-match bg-magenta-intense)
-            (underline-paren-match fg-main)
+      ;;       ;; From the section "Make matching parenthesis more or less intense"
+      ;;       (bg-paren-match bg-magenta-intense)
+      ;;       (underline-paren-match fg-main)
 
-            ;; And expand the preset here.  Note that the ,@ works because
-            ;; we use the backtick for this list, instead of a straight
-            ;; quote.
-            ;; ,@modus-themes-preset-overrides-intense))
-            ))
+      ;;       ;; And expand the preset here.  Note that the ,@ works because
+      ;;       ;; we use the backtick for this list, instead of a straight
+      ;;       ;; quote.
+      ;;       ,@modus-themes-preset-overrides-intense))
+      ;;       ;; ))
 #+end_src
 
 End the customization and load the theme
 #+begin_src elisp
-    
-  (load-theme 'modus-vivendi :no-confirm))
+      
+  ;;  (load-theme 'modus-vivendi-tinted :no-confirm)
+  )
 #+end_src
 
 
@@ -375,8 +410,6 @@ https://protesilaos.com/emacs/ef-themes
           '("\\*Messages\\*"
             "Output\\*$"
             "\\*Async Shell Command\\*"
-            "*vterm*"
-  		  "*scratch*"
             help-mode
             compilation-mode))
     (popper-mode +1)
@@ -408,13 +441,15 @@ Darkens non-file-associated buffers
 #+begin_src elisp
   (use-package doom-modeline
     :ensure t
-    :disabled t
     :config
     (setq doom-modeline-minor-modes nil)
     :hook
     (lsp-mode . (lambda () (setq-local doom-modeline-buffer-name nil)))
     :init (doom-modeline-mode 1))
 #+end_src
+
+#+RESULTS:
+| #[nil ((setq-local doom-modeline-buffer-name nil)) nil] | dap-tooltip-update-mouse-motions-if-enabled |
 
 *** Spaceline
 https://github.com/TheBB/spaceline?tab=readme-ov-file#introduction
@@ -428,9 +463,10 @@ https://github.com/domtronn/spaceline-all-the-icons.el
 #+begin_src elisp
   (use-package spaceline-all-the-icons
     :ensure t
+    :disabled t
     :after spaceline all-the-icons
     :requires all-the-icons
-    :config (spaceline-all-the-icons-theme))
+    :config (if (display-graphic-p) (spaceline-all-the-icons-theme)))
 #+end_src
 
 
@@ -456,54 +492,66 @@ Make a keymap for =project.el=
 #+RESULTS:
 | project | keymap |
 
+Function to kill backwards to the first character
+#+begin_src elisp
+  (defun backward-kill-line ()
+    (interactive)
+    (set-mark-command nil)
+    (back-to-indentation)
+    (kill-region (region-beginning) (region-end)))
+#+end_src
 
 #+begin_src elisp
-    (use-package emacs
-      :custom
-      (tab-always-indent 'complete)
-      ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
-      ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
-      ;; setting is useful beyond Corfu.
-      (read-extended-command-predicate #'command-completion-default-include-p)
-      (enable-recursive-minibuffers t)
-      ;; more comfort
-      (line-spacing 3)
-      (scroll-conservatively 101)
-      ;; use a very narrow window divider
-      (window-divider-default-right-width 1)
-      (window-divider-default-bottom-width 1)
-      (scroll-bar-mode nil)
-      (xref-prompt-for-identifier nil)
-      (desktop-save-mode t)
-      (cursor-style 'bar)
-      :config 
-      (electric-pair-mode 1)
-      ;; wrap on whitespace
-      (global-word-wrap-whitespace-mode 1)
-      (auto-save-mode -1) ; turn off autosave
-      (setq auto-save-timeout 3)
-      (setq ediff-window-setup-function #'ediff-setup-windows-plain)
-      (menu-bar-bottom-and-right-window-divider)
-      (scroll-bar-mode -1)
-      ;; font installed from https://www.jetbrains.com/lp/mono/
-      (add-to-list 'default-frame-alist '(font . "DroidSansMono Nerd Font"))
-      :bind
-      ("C-<return>" . recenter)
-      ("M-<backspace>" . backward-kill-word)
-      ("C-M-RET" . xref-find-references)
-      ("s-K" . kill-buffer-and-window)
-      ("C-M-." . xref-find-definitions-other-window)
-      ("C-q" . bury-buffer)
-    ("M-Z" . zap-up-to-char)
-      :init
-      (defun crm-indicator (args)
-        (cons (format "[CRM%s] %s"
-                (replace-regexp-in-string
-                 "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                 crm-separator)
-                (car args))
-        (cdr args)))
-      (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
+  (use-package emacs
+    :custom
+    (tab-always-indent 'complete)
+    ;; Emacs 28 and newer: Hide commands in M-x which do not apply to the current
+    ;; mode.  Corfu commands are hidden, since they are not used via M-x. This
+    ;; setting is useful beyond Corfu.
+    (read-extended-command-predicate #'command-completion-default-include-p)
+    (enable-recursive-minibuffers t)
+    ;; more comfort
+    (line-spacing 3)
+    (scroll-conservatively 101)
+    ;; use a very narrow window divider
+    (window-divider-default-right-width 1)
+    (window-divider-default-bottom-width 1)
+    (scroll-bar-mode nil)
+    (xref-prompt-for-identifier nil)
+    (desktop-save-mode t)
+    (cursor-style 'bar)
+    ;; don't show cursors in non-active windows
+    (cursor-in-non-selected-windows nil)
+    :config 
+    (electric-pair-mode 1)    
+    (menu-bar-mode -1) ;; It doesn't help me at all
+    ;; wrap on whitespace
+    (global-word-wrap-whitespace-mode 1)
+    (auto-save-mode -1) ; turn off autosave
+    (setq auto-save-timeout 3)
+    (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+    (menu-bar-bottom-and-right-window-divider)
+    (scroll-bar-mode -1)
+    ;; font installed from https://www.jetbrains.com/lp/mono/
+    (add-to-list 'default-frame-alist '(font . "DroidSansM Nerd Font"))
+    :bind
+    ("C-<return>" . recenter)
+    ("M-<backspace>" . backward-kill-word)
+    ("C-M-RET" . xref-find-references)
+    ("s-K" . kill-buffer-and-window)
+    ("C-M-." . xref-find-definitions-other-window)
+    ("C-q" . bury-buffer)
+    ("s-<backspace>" . backward-kill-line)
+  ("C-M-z" . zap-up-to-char)
+  :init
+    (defun crm-indicator (args)
+      (cons (format "[CRM%s] %s"
+              (replace-regexp-in-string
+               "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+               crm-separator)
+              (car args))
+      (cdr args)))
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 #+end_src
 
 #+RESULTS:
@@ -515,6 +563,14 @@ Make a keymap for =project.el=
     (defalias 'kmacro-insert-macro 'insert-kbd-macro)
     (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro))
 #+end_src
+
+*** Markdown
+Use =glow= as the markdown viewer
+https://github.com/charmbracelet/glow
+#+begin_src elisp
+  (setq markdown-command "glow")
+#+end_src
+
 
 *** tty mode
 =kkp.el= provides support for common escape sequences and reading of the super key (hopefully)
@@ -615,13 +671,16 @@ Integrate persp and projectile
   (use-package origami
     :ensure t
     :bind
-    (("C-c z z" . origami-forward-toggle-node)
-     ("C-c z C" . origami-close-all-nodes)
-     ("C-c z O" . origami-open-all-nodes)
-     ("C-c z b" . origami-previous-fold)
-     ("C-c z n" . origami-next-fold))
+    (("C-c C-z z" . origami-forward-toggle-node)
+     ("C-c C-z C" . origami-close-all-nodes)
+     ("C-c C-z O" . origami-open-all-nodes)
+     ("C-c C-z b" . origami-previous-fold)
+     ("C-c C-z n" . origami-next-fold))
     :init (global-origami-mode))
 #+end_src
+
+#+RESULTS:
+: origami-next-fold
 
 ** Icons
 #+begin_src elisp
@@ -638,31 +697,35 @@ Integrate persp and projectile
 ** Tabs
 [[https://github.com/ema2159/centaur-tabs][Reference]]
 #+begin_src elisp
-    (use-package centaur-tabs
-      :ensure t
-      :bind
-      ("s-}" . centaur-tabs-forward)
-      ("s-{" . centaur-tabs-backward)
-      ("M-s-<left>" . centaur-tabs-backward)
-      ("M-s-<right>" . centaur-tabs-forward)
-      :config
-      (setq centaur-tabs-set-icons t
-            centaur-tabs-icon-type 'all-the-icons
-            centaur-tabs-style "bar"
-            centaur-tabs-height 30
-            centaur-tabs-set-bar 'left
-            centaur-tabs-set-close-button nil
-            centaur-tabs-show-new-tab-button nil
-            centaur-tabs-cycle-scope 'tabs
-            centaur-tabs-set-modified-marker t)
-      (centaur-tabs-change-fonts "DroidSansMono Nerd Font" 120)
-      :init
-      (centaur-tabs-mode 1)
-      :hook
-      ;; turn off centaur tabs in these modes
-      (dired-mode . centaur-tabs-local-mode)
-      (vterm-mode . centaur-tabs-local-mode))
+  (use-package centaur-tabs
+    :disabled t
+    :ensure t
+    :bind
+    ("s-}" . centaur-tabs-forward)
+    ("s-{" . centaur-tabs-backward)
+    ("M-s-<left>" . centaur-tabs-backward)
+    ("M-s-<right>" . centaur-tabs-forward)
+    :config
+    (setq centaur-tabs-set-icons t
+          centaur-tabs-icon-type 'all-the-icons
+          centaur-tabs-style "bar"
+          centaur-tabs-height 20
+          centaur-tabs-set-bar 'left
+          centaur-tabs-set-close-button nil
+          centaur-tabs-show-new-tab-button nil
+          centaur-tabs-cycle-scope 'tabs
+          centaur-tabs-set-modified-marker t)
+    (centaur-tabs-change-fonts "DroidSansM Nerd Font" 100)
+    :init
+    (centaur-tabs-mode -1) ;; off for now
+    :hook
+    ;; turn off centaur tabs in these modes
+    (dired-mode . centaur-tabs-local-mode)
+    (vterm-mode . centaur-tabs-local-mode))
 #+end_src
+
+#+RESULTS:
+: centaur-tabs-forward
 
 ** Windows
 
@@ -675,41 +738,40 @@ Delete a window more easily
   (keymap-set my/window-map "m" '("maximize" . maximize-window))
 #+end_src
 
-*** NeoTree
-NeoTree is an alternative to treemacs
-Seems maybe more lightweight?
-
-[[https://www.emacswiki.org/emacs/NeoTree#h5o-8][reference for wiki]]
-
-Function to open up the projectile root
-#+begin_src elisp
-  (defun neotree-project-dir ()
-    "Open NeoTree using the git root."
-    (interactive)
-    (let ((project-dir (project-root (project-current)))
-          (file-name (buffer-file-name)))
-      (neotree-toggle)
-      (if project-dir
-          (if (neo-global--window-exists-p)
-              (progn
-                (neotree-dir project-dir)
-                (neotree-find file-name)))
-        (message "Could not find git project root."))))
-#+end_src
-
+*** neotree
+https://github.com/jaypei/emacs-neotree
 #+begin_src elisp
   (use-package neotree
-    :disabled
     :ensure t
+    :defer t
     :config
-    (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+     (defun neotree-project-dir ()
+       "Open NeoTree using the git root."
+       (interactive)
+       (let ((project-dir (projectile-project-root))
+             (file-name (buffer-file-name)))
+         (neotree-toggle)
+         (if project-dir
+             (if (neo-global--window-exists-p)
+                 (progn
+  		 (neotree-dir project-dir)
+  		 (neotree-find file-name)))
+  	 (message "Could not find git project root."))))
+    :custom
+    (neo-theme 'icons)
+    (neo-window-fixed-size nil)
     :bind
-    (("<f8>" . neotree-project-dir)))
+    ("C-<f8>" . neotree-project-dir)
+    ("<f8>" . neotree-project-dir))
 #+end_src
+
+#+RESULTS:
+: neotree-project-dir
 
 *** treemacs
 #+begin_src elisp
   (use-package treemacs
+    :disabled t
     :ensure t
     :defer t
     :config
@@ -799,7 +861,6 @@ Function to open up the projectile root
 #+end_src
 
 #+RESULTS:
-: treemacs-find-tag
 
 Use all-the-icons
 #+begin_src elisp
@@ -820,7 +881,7 @@ Use all-the-icons
 #+begin_src elisp
   (use-package ace-window
     :ensure t
-    :bind
+    :bind    
     (:map my/window-map
           ("w" . ace-window)
           ("u" . winner-undo)))
@@ -829,13 +890,17 @@ Use all-the-icons
 
 ** Search
 #+begin_src elisp
-    (use-package avy
-      :ensure t
-      :bind
-      (:map my/goto-map
-            ("l" . avy-goto-line)
-            ("t" . avy-goto-char-timer)
-            ("'" . avy-resume)))
+  (use-package avy
+    :ensure t
+    :bind
+    ("C-s" . avy-goto-char)
+    ("C-'" . avy-resume)
+    ("C-t" . avy-goto-char-timer)
+    ("C-S-F" . avy-goto-char)
+    (:map my/goto-map
+          ("l" . avy-goto-line)
+          ("t" . avy-goto-char-timer)
+          ("'" . avy-resume)))
 #+end_src
 
 #+begin_src elisp
@@ -851,7 +916,7 @@ Use all-the-icons
     ;; on by default, ignores vendor
     (rg-define-toggle "--glob='!vendor/*'" "v" t)
     ;; off by default, ignores test files
-    (rg-define-toggle "--glob='!*test.go' --glob='!it/*'" (kbd "C-c t"))
+    (rg-define-toggle "--glob='!*test.go' --glob='!*.test.ts'" (kbd "C-c t"))
 
     
     (rg-define-search search-ignore-vendor-test
@@ -876,13 +941,86 @@ Better-jumper allows us to set marks and jump around pretty easily
     (define-key global-map (kbd "C-j") `("jump" . ,my/jump-map))
     :bind
     (:map my/jump-map
-  		("f" . better-jumper-jump-forward)
-  		("b" . better-jumper-jump-backward)
-  		("j" . better-jumper-set-jump)))
+  		("C-f" . better-jumper-jump-forward)
+  		("C-b" . better-jumper-jump-backward)
+  		("C-j" . better-jumper-set-jump)))
 #+end_src
 
 #+RESULTS:
-: better-jumper-set-jump
+
+* Convenience functions
+Surround the region in some characters, attempting to find matches
+#+begin_src elisp
+  (defun surround/matching (c)
+    (cond ((eq ?\( c) ?\))
+          ((eq ?\[ c) ?\])
+          ((eq ?\{ c) ?\})
+          ((eq ?\< c) ?\>)
+          (t c))) ;; default is to just drop in the character
+
+  (defun surround-region (start end char)
+    "Insert `char' (and maybe its matching closing character) around a region
+  defined by `start' and `end'."
+    (interactive "r\ncSurround:")
+    (if (eq char ?\e)	; allow escape to exit input
+  	    (deactivate-mark) ; and abort the mark	
+      (save-excursion
+        (goto-char start)
+        (insert char)
+        (goto-char (1+ end))
+        (insert (surround/matching char)))))
+
+#+end_src
+
+Allow for marking the symbol as separated by spaces
+#+begin_src elisp
+  (defun my/find-symbol-boundaries (point)
+    (let* ((start point) (end point)
+  	 (whitespace '(?\s ?\t ?\n ?\f ?\r)))
+  	
+      (while (not (-contains? whitespace (char-before start)))
+        (setq start (1- start)))
+      (while (not (-contains? whitespace (char-after end)))
+        (setq end (1+ end)))
+      (list start end)))
+
+   (defun my/highlight-symbol-boundary (point)
+     (interactive "d")
+     (let* ((points (my/find-symbol-boundaries point))
+  	   (start (car points))
+  	   (end (cadr points)))
+       (goto-char start)
+       (set-mark start)
+       (goto-char end)))
+
+  (define-key global-map (kbd "C-M-w") #'my/highlight-symbol-boundary) ; global is good here
+#+end_src
+
+#+RESULTS:
+: my/highlight-symbol-boundary
+
+Allow moving forward or back based on the symbol's boundary
+#+begin_src elisp
+  (defun my/move-forward-to-boundary (point)
+    (interactive "d")
+    (let ((end (cadr (my/find-symbol-boundaries point))))
+      (goto-char end)))
+
+  (defun my/move-backward-to-boundary (point)
+    (interactive "d")
+    (let ((start (car (my/find-symbol-boundaries point))))
+      (goto-char start)))
+#+end_src
+
+#+RESULTS:
+: my/move-backward-to-boundary
+
+Copy file name
+#+begin_src elisp
+      (defun copy-filename ()
+        (interactive)
+        (kill-new (buffer-file-name)))
+#+end_src
 
 * God mode
 Function to delete the marked text and exit god mode (similar to =C= in vim)
@@ -900,33 +1038,36 @@ Function to delete the marked text and exit god mode (similar to =C= in vim)
 
 https://github.com/emacsorphanage/god-mode
 #+begin_src elisp
-    (use-package god-mode
-      :ensure t
-      :bind
-      ("<escape>" . #'god-mode)
-      ("C-z" . repeat)
-      (:map god-local-mode-map
-            ("i" . god-mode)
-            ("a" . beginning-of-line-text)
-            ("[" . backward-paragraph)
-            ("]" . forward-paragraph)
-            ("C" . my/god-mode-change))
-      :chords
-      ("jk" . god-mode)
-      :config
-      (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
+  (use-package god-mode
+    :ensure t
+    :bind
+    ("<escape>" . #'god-mode-all)
+    ("C-z" . repeat)
+    ("C-<f3>" . kmacro-start-macro-or-insert-counter)
+    ("C-<f4>" . kmacro-end-or-call-macro)
+    (:map god-local-mode-map
+  	("S" . surround-region)
+          ("i" . god-mode-all)
+          ("a" . beginning-of-line-text)
+          ("[" . backward-paragraph)
+          ("]" . forward-paragraph)
+          ("C" . my/god-mode-change))
+    :chords
+    ("jk" . god-mode-all)
+    :config
+    (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
 
-      (defun god-mode-cursor ()
-        (if god-local-mode
-            (setq-local cursor-type 'box)
-          (setq-local cursor-type 'bar)))
-      (add-hook 'post-command-hook #'god-mode-cursor)
-      :init
-      (god-mode))
+    (defun god-mode-cursor ()
+      (if god-local-mode
+          (setq-local cursor-type 'box)
+        (setq-local cursor-type 'bar)))
+    (add-hook 'post-command-hook #'god-mode-cursor)
+    :init
+    (god-mode))
 #+end_src
 
 #+RESULTS:
-: god-mode
+: t
 
 
 * Hyperbole
@@ -936,24 +1077,44 @@ Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
 #+begin_src elisp
   (use-package hyperbole
     :ensure t
+    :defer t
     :init
     (hyperbole-mode 1))
 #+end_src
 
 * yas
+Create a yas keymap
+#+begin_src elisp
+  (setq my/yas-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c C-y") `("yas" . ,my/yas-map))
+  #+end_src
+
+  #+RESULTS:
+  | yas | keymap |
+
 #+begin_src elisp
   (use-package yasnippet
     :ensure t
+    :bind
+    (:map my/yas-map
+  	  ("n" . yas-new-snippet)
+  	  ("s" . yas-insert-snippet))
     :config (yas-global-mode 1))
 #+end_src
+
+#+RESULTS:
+: yas-insert-snippet
 
 * Quick reload changes
 #+begin_src elisp
   (defun reload()
     (interactive)
-    (org-babel-load-file (expand-file-name "~/bedrock/config.org"))
-    (load (expand-file-name "~/bedrock/config.el")))
+    (org-babel-load-file (expand-file-name "~/emacs/bedrock-config/config.org"))
+    (load (expand-file-name "~/emacs/bedrock-config/config.el")))
 #+end_src 
+
+#+RESULTS:
+: reload
 
 * Completion
 
@@ -1021,11 +1182,7 @@ Change the way vertico looks based on the command I'm using
     :after vertico
     :ensure nil
     :custom
-    (vertico-multiform-categories
-     '(
-  	 (consult-location buffer)
-  	 ))
-
+    
     (vertico-multiform-commands
   	 '(
   	   (consult-imenu buffer indexed)
@@ -1045,55 +1202,67 @@ Change the way vertico looks based on the command I'm using
 
 ** Orderless
 #+begin_src elisp
-  (use-package orderless
-    :ensure t
-    :custom
-    (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles basic partial-completion)))))
+    (use-package orderless
+      :ensure t
+      :custom
+      (completion-styles '(orderless basic))
+      (completion-category-defaults nil)
+      (completion-category-overrides '((file (styles basic partial-completion))
+  				     (lsp-capf (styles orderless)))))
 #+end_src
+
+#+RESULTS:
 
 ** Completion
 Using tab-and-go completion style
 
 *** Company
 #+begin_src elisp
-  ;; (use-package company
-  ;;   :ensure t
-  ;;   :config
-  ;;   (setq company-tooltip-align-annotations t
-  ;; 		 ;;         company-show-quick-access t
-  ;;         company-files-exclusions '(".git/" ".DS_Store")
-  ;;         ;; use letters instead of icons
-  ;;         company-format-margin-function #'company-text-icons-margin
-  ;;         ;; company-text-icons-add-background t
-  ;;         ;; make it so that I do it myself, please
-  ;;         company-idle-delay 0.3)
-  ;;   ;; customize the annotation faces
-  ;;   ;; (custom-set-faces
-  ;;   ;;  '(company-tooltip-annotation ((t (:foreground "dark gray")))))
-  ;;   ;; (
-  ;;    (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
-  ;;   :bind
-  ;;   ("M-i" . company-manual-begin)
-  ;;   (:map company-active-map
-  ;;         ([tab] . company-complete-common-or-cycle)
-  ;;         ("<escape>" . company-abort))
-  ;;   :init
-  ;;   (global-company-mode 1))
+  (use-package company
+    :disabled t
+    :ensure t
+    :config
+    (setq company-tooltip-align-annotations t
+  		 ;;         company-show-quick-access t
+          company-files-exclusions '(".git/" ".DS_Store")
+          ;; use letters instead of icons
+          company-format-margin-function #'company-text-icons-margin
+          company-text-icons-add-background t
+          ;; make it so that I do it myself, please
+          company-idle-delay 0.3)
+    ;; customize the annotation faces
+    ;; (custom-set-faces
+    ;;  '(company-tooltip-annotation ((t (:foreground "dark gray")))))
+    ;; (
+     (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
+    :bind
+    ("M-i" . company-manual-begin)
+    (:map company-active-map
+          ([tab] . company-complete-common-or-cycle)
+          ("<escape>" . company-abort))
+    :init
+    (global-company-mode 1))
 #+end_src
+
+#+RESULTS:
+: company-abort
 
 Company-box shows nice popups (and documentation) for selection candidates
 #+begin_src elisp
   (use-package company-box
+    :disabled t
     :ensure t
+    :requires company
+    :config
+    (setq company-box-doc-delay 0.8)
     :hook (company-mode . company-box-mode))
 #+end_src
 
 Really turn off company mode
 #+begin_src elisp
-  (defun turn-off-company ()
-    (company-mode -1))
-    (add-hook 'prog-mode-hook #'turn-off-company)
+  ;; (defun turn-off-company ()
+  ;;   (company-mode -1))
+  ;;   (add-hook 'prog-mode-hook #'turn-off-company)
 #+end_src
 
 
@@ -1105,26 +1274,37 @@ Really turn off company mode
 
 Not using it for now, trying out company
 #+begin_src elisp
-  (use-package corfu
-    :ensure t
-    :custom
-    (corfu-cycle t)
-    (corfu-preselect 'prompt)
-    (corfu-preview-current nil)
-    (corfu-quit-at-boundary nil)
-    ;; corfu popup
-    (corfu-echo-delay '(1.0 . 1.0))
-    :config
-    :bind
-    (:map corfu-map
-          ("SPC" . corfu-insert-separator)
-        ("TAB" . corfu-next)
-        ([tab] . corfu-next)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous))
-    :init
-    (global-corfu-mode 1))
+      (use-package corfu
+        :ensure t
+        :custom
+        (corfu-cycle t)
+        (corfu-preselect 'first)
+        (corfu-preview-current nil)
+        (corfu-quit-at-boundary 'separator)
+        (corfu-on-exact-match 'quit)
+        (corfu-auto t)
+        (corfu-quit-no-match t)
+        ;; corfu popup
+        (corfu-popupinfo-mode t)
+        (corfu-popupinfo-delay '(1.0 . 0.5))
+        :config
+        :bind
+        (:map corfu-map
+            ("M-SPC" . corfu-insert-separator)
+            ("TAB" . corfu-next)
+            ([tab] . corfu-next)
+            ("S-TAB" . corfu-previous)
+            ([backtab] . corfu-previous)
+    	("<return>" . corfu-insert)
+  	("<escape>" . corfu-quit))
+        :init
+        (global-corfu-mode 1)
+        (corfu-popupinfo-mode))
 #+end_src
+
+#+RESULTS:
+: corfu-quit
+
 
 *** Cape
 https://github.com/minad/cape
@@ -1166,6 +1346,21 @@ A function to search the current directory. If something is under point, suggest
       (consult-ripgrep dir)))
 #+end_src
 
+Taken from the consult wiki: https://github.com/minad/consult/wiki
+Make any previews interactive
+#+begin_src elisp
+  (define-key minibuffer-local-map (kbd "M-.") #'my-embark-preview)
+  (defun my-embark-preview ()
+    "Previews candidate in vertico buffer, unless it's a consult command"
+    (interactive)
+    (unless (bound-and-true-p consult--preview-function)
+      (save-selected-window
+        (let ((embark-quit-after-action nil))
+          (embark-dwim)))))
+#+end_src
+
+TODO:
+Custom consult function to use eyebrowse
 
 #+begin_src elisp
   (use-package consult
@@ -1173,6 +1368,9 @@ A function to search the current directory. If something is under point, suggest
     :bind
     ;; meow SPC x b
     (("C-c b" . consult-bookmark)
+     ("C-S-Y" . consult-yank-from-kill-ring)
+     ("M-'" . consult-register-store)
+     ("M-\"" . consult-register)
      :map my/consult-map
           (("b" . consult-project-buffer)
           ("B" . consult-buffer)
@@ -1182,8 +1380,7 @@ A function to search the current directory. If something is under point, suggest
           ("i" . consult-imenu)
           ("I" . consult-imenu-multi)
           ("r" . consult-ripgrep)
-          ("d" . search/dir)
-          ("y" . consult-yank-replace))
+          ("d" . search/dir))
           :map my/goto-map
           (("L" . consult-goto-line))
           :map my/window-map
@@ -1191,6 +1388,18 @@ A function to search the current directory. If something is under point, suggest
     :init
     (setq consult-narrow-key (kbd "<")))
 #+end_src
+
+#+RESULTS:
+: consult-buffer-other-window
+
+Set these on the global keymap, overriding the existing ones
+#+begin_src elisp
+  (define-key global-map (kbd "C-c C-r") #'consult-register-load)
+#+end_src
+
+
+#+RESULTS:
+: consult-register-load
 
 Use consult-xref for xref! So great
 #+begin_src elisp
@@ -1272,17 +1481,18 @@ Use consult-xref for xref! So great
 #+end_src
 
 
-* vterm
+* Terminal
+
+** vterm
 #+begin_src elisp
-  (use-package vterm
-    :ensure t
-    :bind
-    (("C-c v" . vterm)))
+    (use-package vterm
+      :ensure t
+      :bind
+      (("C-c v" . vterm)
+      ("C-c V" . vterm-other-window)))
 #+end_src
 
-
 * Languages
-TODO: have to get xref working
 
 ** Flycheck
 Define a keymap for errors
@@ -1325,6 +1535,8 @@ Define a keymap for errors
           (elisp "https://github.com/Wilfred/tree-sitter-elisp")
           (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
           (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
+
+  (setq treesit-font-lock-level 4)
 #+end_src
 
 ** yaml
@@ -1332,6 +1544,80 @@ Define a keymap for errors
   (use-package yaml-mode
     :ensure t)
 #+end_src
+
+** DAP mode
+Should allow for debugging and stepping through code
+Github repo: https://github.com/emacs-lsp/dap-mode
+Webiste: https://emacs-lsp.github.io/dap-mode/
+#+begin_src elisp
+      (use-package dap-mode
+        :ensure t)
+#+end_src
+
+*** node
+Need the node setup
+#+begin_src elisp
+          (use-package dap-node
+            :requires dap-mode
+            :after dap-mode
+    	:config
+  	(dap-node-setup))
+#+end_src
+
+Use the chrome setup too, since the chrome debugger is nice
+#+begin_src elisp
+    (use-package dap-chrome
+      :requires dap-mode
+      :after dap-mode
+      :config
+      (dap-chrome-setup))
+#+end_src
+
+
+A configuration to run the tests with debug enabled
+#+begin_src elisp
+  (dap-register-debug-template
+   "debug tests"
+   (list :type "node"
+         :request "launch"
+         :args  '("--inspect-brk" "/opt/homebrew/bin/jest" "--runInBand")
+         :name "Debug tests"))
+#+end_src
+
+A configuration to simply run a file
+#+begin_src elisp
+  (dap-register-debug-template
+   "Node run file"
+   (list :type "node"
+   :request "launch"
+   :program "${workspaceFolder}/local/run-query.ts"
+   :args nil
+   :name "node run"))
+#+end_src
+
+TS-node config, for changing on the fly
+#+begin_src elisp
+  ;; TODO: make this an interactive function to run the debug configuration
+   (dap-register-debug-template
+    "TS run"
+  (list :name "TS Index"
+        :type "node"
+        :request "launch"
+        :args (expand-file-name "~/j1/query-domain/local/run-query.ts")
+        :runtimeArgs ["--nolazy" "-r" "ts-node/register"]
+        :sourceMaps t
+        :cwd (expand-file-name "~/j1/query-domain")
+        :protocol "inspector"))
+#+end_src
+
+
+
+#+RESULTS:
+| TS run                 | :name | TS Index | :type    | node   | :request | launch                                             | :args    | /Users/jonlasley/j1/query-domain/local/run-query.ts | :runtimeArgs | [--nolazy -r ts-node/register] | :sourceMaps | t | :cwd | /Users/jonlasley/j1/query-domain | :protocol | inspector |
+| Node::Run              | :type | node     | :cwd     | nil    | :request | launch                                             | :program | /Users/jonlasley/j1/query-domain/local/run-query.ts | :name        | Node::Run                      |             |   |      |                                  |           |           |
+| Node run file          | :type | node     | :request | launch | :program | ${workspaceFolder}/local/run-query.ts              | :args    | nil                                                 | :name        | node run                       |             |   |      |                                  |           |           |
+| debug tests            | :type | node     | :request | launch | :args    | (--inspect-brk /opt/homebrew/bin/jest --runInBand) | :name    | Debug tests                                         |              |                                |             |   |      |                                  |           |           |
+| Node Run Configuration | :type | node     | :cwd     | nil    | :request | launch                                             | :program | nil                                                 | :name        | Node::Run                      |             |   |      |                                  |           |           |
 
 
 ** lsp
@@ -1358,6 +1644,7 @@ Don't watch vendor dirs
           lsp-enable-file-watchers nil
           ;; show warns in flycheck
           lsp-diagnostics-flycheck-default-level 'warning)
+    (add-to-list 'lsp-file-watch-ignored-files "[/\\\\].*~$")
     :hook
     ;; go
     ((go-mode . lsp-deferred)
@@ -1368,17 +1655,21 @@ Don't watch vendor dirs
      (go-mode . lsp-format-and-organize-imports)))
 #+end_src
 
+#+RESULTS:
+| go-guru-hl-identifier-mode | #[nil ((flycheck-golangci-lint-setup) (setq flycheck-local-checkers '((lsp (next-checkers golangci-lint))))) nil] | flycheck-golangci-lint-setup | lsp-format-and-organize-imports | lsp-deferred | doom-modeline-env-setup-go |
+
 *** LSP extensions
 Peek is awesome
 #+begin_src elisp
-    (use-package lsp-ui
-      :ensure t
-      :config
-      (setq lsp-ui-doc-delay 1)
-      :bind
-      (:map lsp-ui-mode-map
-            ("M-." . lsp-ui-peek-find-definitions)
-            ("M-?" . lsp-ui-peek-find-references)))
+      (use-package lsp-ui
+        :ensure t
+        :config
+        (setq lsp-ui-doc-delay 1)
+        :bind
+        (:map lsp-ui-mode-map
+              ("M-." . lsp-ui-peek-find-definitions)
+              ("M-?" . lsp-ui-peek-find-references)
+  	    ("M-s C-i" . lsp-ui-imenu)))
 #+end_src
 
 *** Consult LSP
@@ -1500,27 +1791,127 @@ Requires =go get -u github.com/davidrjenni/reftools/cmd/fillstruct=
             (rust-mode . lsp-))
 #+end_src
 
-** TSX
+** JavaScript
+
 #+begin_src elisp
-  (add-to-list 'auto-mode-alist '("\\.[jt]sx?" . tsx-ts-mode))
-  (add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
+  (add-to-list 'auto-mode-alist '("\\.[jt]sx?" . tsx-ts-mode)) ; going to try out webmode for a little, think it will be nice
+    (add-hook 'tsx-ts-mode-hook #'lsp-deferred)
 #+end_src
+
+add the same hooks for typescript-ts-mode
+#+begin_src elisp
+  (add-hook 'typescript-ts-mode-hook #'lsp-deferred)
+#+end_src
+
+
+#+RESULTS:
+| lsp-deferred |
 
 [[https://web-mode.org/][Web mode]] is sick
 #+begin_src elisp
   (use-package web-mode
     :ensure t
+    :disabled t
     :hook
     (web-mode . lsp-deferred)
+    (web-mode . lsp-format-and-organize-imports)
     :config
     (add-to-list 'auto-mode-alist '("\\.[tj]sx" . web-mode)))
+#+end_src
+
+*** playground
+Spin up a quick buffer to edit a reusable JS file for playground stuff
+#+begin_src elisp
+  (defun open-playground-file ()
+    (interactive)
+    ;; TODO: minor mode for keymaps for running?
+    (let ((file (expand-file-name "~/playground/playground.js")))
+      (find-file-other-window file)))
+
+  (defun node-run-region (beg end)
+    ;; TODO: needs some work
+    (interactive "r")
+    (let ((output (get-buffer-create "*node output*")))
+      (message "%s %s" beg end)
+      (shell-command-on-region beg end "node -e" output nil output t nil)))
+
+  (defun node-run-file (file)
+    (interactive (list (read-string "File: " (buffer-file-name))))
+    (let ((cmd (format "node %s" (shell-quote-argument (expand-file-name file))))
+  	(output (get-buffer-create "*node output*")))
+      (shell-command cmd output output)))
+#+end_src
+
+#+RESULTS:
+: node-run-file
+
+
+*** jest
+#+begin_src elisp
+          (use-package jest
+            :ensure t
+            :hook
+    	(tsx-ts-mode . jest-minor-mode)
+  	(typescript-ts-mode . jest-minor-mode))
+#+end_src
+
+#+RESULTS:
+
+
+*** Prettier
+
+#+begin_src elisp
+  (use-package prettier
+    :ensure t
+    :defer t
+    :hook
+    (web-mode . prettier-mode)
+    (tsx-ts-mode . prettier-mode)
+    (typescript-ts-mode . prettier-mode))
+#+end_src
+
+#+RESULTS:
+| prettier-mode | lsp-deferred |
+
+*** Tide mode
+Reference: https://github.com/ananthakumaran/tide
+#+begin_src elisp
+  (use-package tide
+    :ensure t
+    :defer t
+  :config
+    (defun setup-tide-mode ()
+    (interactive)
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1))
+    ;; company is an optional dependency. You have to
+    ;; install it separately via package-install
+    ;; `M-x package-install [ret] company`
+
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+
+  ;; formats the buffer before saving
+  (add-hook 'before-save-hook 'tide-format-before-save)
+
+  ;; if you use typescript-mode
+  (add-hook 'typescript-mode-hook #'setup-tide-mode)
+  ;; if you use treesitter based typescript-ts-mode (emacs 29+)
+  (add-hook 'typescript-ts-mode-hook #'setup-tide-mode))
 #+end_src
 
 
 ** Clojure mode
 #+begin_src elisp
-      (use-package clojure-mode
-        :ensure t)
+    (use-package clojure-mode
+      :ensure t
+      :custom
+      (setq lsp-clojure-server-command '("/opt/homebrew/bin/clojure-lsp"))
+  :hook
+  (clojure-mode . lsp-deferred))
 #+end_src
 
 Paredit is awesome
@@ -1576,18 +1967,62 @@ LSP configuration
   (use-package fish-mode :ensure t)
 #+end_src
 
-Protocol buffer syntax highlighting
+*** Docker
 #+begin_src elisp
-  (use-package protobuf-mode :ensure t)
+  (use-package dockerfile-mode :ensure t)
 #+end_src
 
-PKL
-[[https://github.com/sin-ack/pkl-mode][Reference]]
+#+RESULTS:
+
+*** terraform
 #+begin_src elisp
-  ;; (when (>= emacs-major-version 30)
-  ;;   (use-package pkl-mode
-  ;;   :vc (:url "https://github.com/sin-ack/pkl-mode" :rev :newest)))
+        (use-package terraform-mode
+          :ensure t
+          :custom (terraform-indent-level 4))
 #+end_src
+
+#+RESULTS:
+
+
+
+
+* AI
+People on the emacs subreddit have only good things to say about [[https://github.com/tninja/aider.el][aider.el]]
+#+begin_src elisp
+    (use-package aider
+    :vc (:url "https://github.com/tninja/aider.el")
+    :config
+    ;; For latest claude sonnet model
+    ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
+    ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+    ;; Or chatgpt model
+    ;; (setq aider-args '("--model" "o4-mini"))
+    ;; (setenv "OPENAI_API_KEY" "TODO")
+  ;;  Or gemini model
+    ;; (setq aider-args '("--model" "gemini-exp"))
+    ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
+    ;; Or use your personal config file
+    (setq aider-args `("--config" ,(expand-file-name "~/emacs/bedrock-config/aider.conf.yml")))
+    ;; ;;
+    ;; Optional: Set a key binding for the transient menu
+    (global-set-key (kbd "C-c a") 'aider-transient-menu))
+#+end_src
+
+** Claude code
+https://github.com/stevemolitor/claude-code.el
+#+begin_src elisp
+  (use-package claude-code :ensure t
+    :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+    :config (claude-code-mode)
+    :custom
+    (claude-code-terminal-backend 'vterm)
+    :bind ("C-c c" . claude-code-transient))  
+#+end_src
+
+#+RESULTS:
+: claude-code-transient
+
+
 
 * Formatters
 
@@ -1694,6 +2129,17 @@ A minor mode for presenting org (focusing)
     :ensure t)
 #+end_src
 
+** org-jira
+Reference: https://github.com/ahungry/org-jira?tab=readme-ov-file#installation
+#+begin_src elisp
+          (use-package org-jira
+            :ensure t
+            :custom
+    	(jiralib-url "https://jupiterone.atlassian.net"))
+#+end_src
+
+#+RESULTS:
+
 
 ** Super agenda
 #+begin_src elisp
@@ -1724,84 +2170,94 @@ Create the custom agenda command for super agenda
           (alltodo "" ((org-agenda-overriding-header "")
                        (org-super-agenda-groups
                         `((:log t)
+  			
                          (:name "Important"
                           :priority "A"
                           :face (:weight ultra-bold :background "blue")
-                          :order 1)
+                          :order 2)
                           (:name "Next"
                            :todo "NEXT"
-                           :order 3)
+                           :order 4)
                          (:name "Coming up"
                                 :scheduled future
-                                :order 4)
+                                :order 5)
                           (:name "In progress"
                            :todo "PROG"
-                           :order 2)
+                           :order 3)
                           (:name "Can wait"
                            :priority "C"
-                           :order 5)
+                           :order 6)
                           (:name "If time"
                            :priority "B"
-                           :order 4)
+                           :order 5)
+  			(:name "Jira -- other"
+  			       :file-path ,(expand-file-name "~/.org-jira"))
                           (:name "Blocked"
                                  :todo "HOLD"
                                  :order 100)
-                          (:discard (:file-path ,(expand-file-name "~/org/bills.org")))
                           (:discard (:file-path ,(expand-file-name "~/org/habits.org")))
                           (:discard (:anything t))))))))))
 #+end_src
 
+#+RESULTS:
+| c | Super agenda | ((agenda  ((org-agenda-overriding-header ) (org-super-agenda-groups '((:log t) (:name Overdue :deadline past) (:name Habits :habit t) (:name Today :time-grid t :date today) (:name Unstarted :scheduled past) (:discard (:anything t)))))) (alltodo  ((org-agenda-overriding-header ) (org-super-agenda-groups `((:log t) (:name Important :priority A :face (:weight ultra-bold :background blue) :order 2) (:name Next :todo NEXT :order 4) (:name Coming up :scheduled future :order 5) (:name In progress :todo PROG :order 3) (:name Can wait :priority C :order 6) (:name If time :priority B :order 5) (:name Jira -- other :file-path ,(expand-file-name ~/.org-jira)) (:name Blocked :todo HOLD :order 100) (:discard (:file-path ,(expand-file-name ~/org/habits.org))) (:discard (:anything t))))))) |
+
 
 ** Templates
 #+begin_src elisp
-  (setq org-capture-templates '(("a" "Agenda")
-                              ("at" "TODO" entry
-                               (file "~/org/agenda.org")
-                               "* TODO %?"
+    (setq org-capture-templates '(("a" "Agenda")
+                                ("at" "TODO" entry
+                                 (file "~/org/agenda.org")
+                                 "* TODO %?"
+                                 :empty-lines-before 1)
+                                  ("ad" "Deadline" entry
+                                   (file+olp+datetree "~/org/agenda.org")
+                                   "* %?\nDEADLINE: %^{at}t")
+                                  ("t" "Todos")
+                                  ("tt" "project todo" entry
+                                   (file "~/org/projects.org")
+                                   "* TODO %?\n%i"
+                                 :empty-lines-before 1)
+                                  ("tf" "file todo" entry
+                                   (file "~/org/projects.org")
+                                   "* TODO %?\n%a"
                                :empty-lines-before 1)
-                                ("ad" "Deadline" entry
-                                 (file+olp+datetree "~/org/agenda.org")
-                                 "* %?\nDEADLINE: %^{at}t")
-                                ("t" "Todos")
-                                ("tt" "project todo" entry
-                                 (file "~/org/projects.org")
-                                 "* TODO %?\n%i"
+                                  ("tn" "today" entry
+                                   (file+headline "~/org/todo.org" "Todos")
+                                   "* TODO %?\n%t"
+                                 :empty-lines-before 1)
+                                  ("td" "deadline" entry
+                                   (file+headline "~/org/todo.org" "Todos")
+                                   "* TODO %?\nDEADLINE: %^{at}t"
                                :empty-lines-before 1)
-                                ("tf" "file todo" entry
-                                 (file "~/org/projects.org")
-                                 "* TODO %?\n%a"
-                             :empty-lines-before 1)
-                                ("tn" "today" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\n%t"
+                                  ("ts" "scheduled" entry
+                                   (file+headline "~/org/todo.org" "Todos")
+                                   "* TODO %?\nSCHEDULED: %^{at}t"
+                                 :empty-lines-before 1)
+                                  ("c" "chore" entry
+                                   (file +org-chores-file)
+                                   "* TODO %?\nDEADLINE: %t"
                                :empty-lines-before 1)
-                                ("td" "deadline" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\nDEADLINE: %^{at}t"
-                             :empty-lines-before 1)
-                                ("ts" "scheduled" entry
-                                 (file+headline "~/org/todo.org" "Todos")
-                                 "* TODO %?\nSCHEDULED: %^{at}t"
-                               :empty-lines-before 1)
-                                ("c" "chore" entry
-                                 (file +org-chores-file)
-                                 "* TODO %?\nDEADLINE: %t"
-                             :empty-lines-before 1)
-                                ("n" "notes")
-                                ("nd" "discussion" entry
-                                 (file+datetree "~/org/discussions.org")
-                                 "* %?"
-                                 :tree-type month)
-                                ("nn" "note" entry
-                                 (file+datetree "~/org/notes.org")
-                                 "* %?")
-                                ("d" "developer log")
-                                ("dg" "game" entry
-                                 (file+datetree "~/org/game_dev_log.org")
-                                 "* %?"
-                                 :empty-lines-after 1)))
+                                  ("n" "notes")
+                                  ("nd" "discussion" entry
+                                   (file+datetree "~/org/discussions.org")
+                                   "* %?"
+                                   :tree-type month)
+    			      ("nf" "file note" entry
+    			       (file "~/org/notes.org")
+    			       "* %?\n%a"
+  			       :empty-lines-after 1)
+                                  ("d" "developer log" entry
+                                   (file+datetree "~/org/dev_log.org")
+                                   "* %?\n** Worked on\n\n** Went well\n\n** Room for improvement"
+                                   :empty-lines-after 1)))
 
 #+end_src
+
+#+RESULTS:
+| a  | Agenda   |       |                                      |           |                     |   |
+| at | TODO     | entry | (file ~/org/agenda.org)              | * TODO %? | :empty-lines-before | 1 |
+| ad | Deadline | entry | (file+olp+datetree ~/org/agenda.org) | * %?      |                     |   |
 
 
 ** Org brain
@@ -1811,32 +2267,6 @@ Create the custom agenda command for super agenda
     :bind
     (("C-c o b" . org-brain-visualize)))
 #+end_src
-
-
-** Org roam
-#+begin_src elisp
-  (setq my/org-roam-map (make-sparse-keymap))
-  (define-key my/org-map (kbd "r") `("roam" . ,my/org-roam-map))
-#+end_src
-
-
-#+begin_src elisp
-  (use-package org-roam
-    :ensure t
-    :config
-    (org-roam-db-autosync-mode 1)
-    (setq org-roam-db-location "~/.config/emacs/.local/cache/org-roam.db")
-    :bind
-    (:map my/org-roam-map
-          ("i" . org-roam-node-insert)
-        ("l" . org-id-get-create)
-        ("b" . org-roam-buffer-toggle)
-        ("c" . org-roam-capture)
-          ("f" . org-roam-node-find)))
-#+end_src
-
-#+RESULTS:
-: org-roam-node-find
 
 
 * Fun
