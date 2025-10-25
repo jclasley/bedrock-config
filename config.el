@@ -1,69 +1,15 @@
-;;;  ________                                                _______                 __                            __
-  ;;; /        |                                              /       \               /  |                          /  |
-  ;;; $$$$$$$$/ _____  ____   ______   _______  _______       $$$$$$$  | ______   ____$$ | ______   ______   _______$$ |   __
-  ;;; $$ |__   /     \/    \ /      \ /       |/       |      $$ |__$$ |/      \ /    $$ |/      \ /      \ /       $$ |  /  |
-  ;;; $$    |  $$$$$$ $$$$  |$$$$$$  /$$$$$$$//$$$$$$$/       $$    $$</$$$$$$  /$$$$$$$ /$$$$$$  /$$$$$$  /$$$$$$$/$$ |_/$$/
-  ;;; $$$$$/   $$ | $$ | $$ |/    $$ $$ |     $$      \       $$$$$$$  $$    $$ $$ |  $$ $$ |  $$/$$ |  $$ $$ |     $$   $$<
-  ;;; $$ |_____$$ | $$ | $$ /$$$$$$$ $$ \_____ $$$$$$  |      $$ |__$$ $$$$$$$$/$$ \__$$ $$ |     $$ \__$$ $$ \_____$$$$$$  \
-  ;;; $$       $$ | $$ | $$ $$    $$ $$       /     $$/       $$    $$/$$       $$    $$ $$ |     $$    $$/$$       $$ | $$  |
-  ;;; $$$$$$$$/$$/  $$/  $$/ $$$$$$$/ $$$$$$$/$$$$$$$/        $$$$$$$/  $$$$$$$/ $$$$$$$/$$/       $$$$$$/  $$$$$$$/$$/   $$/
-
-  ;;; Minimal init.el
-
-  ;;; Contents:
-  ;;;
-  ;;;  - Basic settings
-  ;;;  - Discovery aids
-  ;;;  - Minibuffer/completion settings
-  ;;;  - Interface enhancements/defaults
-  ;;;  - Tab-bar configuration
-  ;;;  - Theme
-  ;;;  - Optional extras
-  ;;;  - Built-in customization framework
-
-  ;;; Guardrail
-
-  (when (< emacs-major-version 29)
+(when (< emacs-major-version 29)
     (error (format "Emacs Bedrock only works with Emacs 29 and newer; you have version ~a" emacs-major-version)))
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;in
-  ;;;
-  ;;;   Basic settings
-  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;; Package initialization
-  ;;
-  ;; We'll stick to the built-in GNU and non-GNU ELPAs (Emacs Lisp Package
-  ;; Archive) for the base install, but there are some other ELPAs you could look
-  ;; at if you want more packages. MELPA in particular is very popular. See
-  ;; instructions at:
-  ;;
-  ;;    https://melpa.org/#/getting-started
-  ;;
-  ;; You can simply uncomment the following if you'd like to get started with
-  ;; MELPA packages quickly:
-  ;;
-  ;; (with-eval-after-load 'package
-  ;;   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
-
-  ;; If you want to turn off the welcome screen, uncomment this
-  ;(setopt inhibit-splash-screen t)
-
   (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
   (setopt display-time-default-load-average nil) ; this information is useless for most
 
-  ;; Automatically reread from disk if the underlying file changes
   (setopt auto-revert-avoid-polling t)
-  ;; Some systems don't do file notifications well; see
-  ;; https://todo.sr.ht/~ashton314/emacs-bedrock/11
   (setopt auto-revert-interval 5)
   (setopt auto-revert-check-vc-info t)
   (global-auto-revert-mode)
 
   ;; Save history of minibuffer
   (savehist-mode)
-
 
   ;; Fix archaic defaults
   (setopt sentence-end-double-space nil)
@@ -79,65 +25,23 @@
   If the new path's directories does not exist, create them."
     (let* ((backupRootDir "~/.emacs.d/emacs-backup/")
            (filePath (replace-regexp-in-string "[A-Za-z]:" "" fpath )) ; remove Windows driver letter in path
-           (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~") )))
+           (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~"))))
       (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
       backupFilePath))
   (setopt make-backup-file-name-function 'bedrock--backup-file-name)
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;
-  ;;;   Discovery aids
-  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;; Show the help buffer after startup
-
-  ;; (add-hook 'after-init-hook 'help-quick)
 
   ;; which-key: shows a popup of available keybindings when typing a long key
   ;; sequence (e.g. C-x ...)
   (use-package which-key
-    :ensure t
     :config
+    (setq which-key-keymap-history t)
+    (which-key-enable-god-mode-support)
     (which-key-mode))
 
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;
-  ;;;   Minibuffer/completion settings
-  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;; For help, see: https://www.masteringemacs.org/article/understanding-minibuffer-completion
-
-  ;; (setopt enable-recursive-minibuffers t)                ; Use the minibuffer whilst in the minibuffer
-  ;; (setopt completion-cycle-threshold 1)                  ; TAB cycles candidates
-  ;; (setopt completions-detailed t)                        ; Show annotations
-  ;; (setopt tab-always-indent 'complete)                   ; When I hit TAB, try to complete, otherwise, indent
-  ;; (setopt completion-styles '(basic initials substring)) ; Different styles to match input to candidates
-;; 
-  ;; (setopt completion-auto-help 'always)                  ; Open completion always; `lazy' another option
-  ;; (setopt completions-max-height 20)                     ; This is arbitrary
-  ;; (setopt completions-detailed t)
-  ;; (setopt completions-format 'one-column)
-  ;; (setopt completions-group t)
-  ;;
 (setopt completion-auto-select 'second-tab)            ; Much more eager
-  ;(setopt completion-auto-select t)                     ; See `C-h v completion-auto-select' for more possible values
 
   (keymap-set minibuffer-mode-map "TAB" 'minibuffer-complete) ; TAB acts more like how it does in the shell
-
-  ;; For a fancier built-in completion option, try ido-mode,
-  ;; icomplete-vertical, or fido-mode. See also the file extras/base.el
-
-  ;(icomplete-vertical-mode)
-  ;(fido-vertical-mode)
-  ;(setopt icomplete-delay-completions-threshold 4000)
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;
-  ;;;   Interface enhancements/defaults
-  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   ;; Mode line information
   (setopt line-number-mode t)                        ; Show current line in modeline
@@ -184,44 +88,6 @@
 
   ;; Add the time to the tab-bar, if visible
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;
-  ;;;   Optional extras
-  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ;; Uncomment the (load-file …) lines or copy code from the extras/ elisp files
-  ;; as desired
-
-  ;; UI/UX enhancements mostly focused on minibuffer and autocompletion interfaces
-  ;; These ones are *strongly* recommended!
-  ;(load-file (expand-file-name "extras/base.el" user-emacs-directory))
-
-  ;; Packages for software development
-  ;(load-file (expand-file-name "extras/dev.el" user-emacs-directory))
-
-  ;; Vim-bindings in Emacs (evil-mode configuration)
-  ;(load-file (expand-file-name "extras/vim-like.el" user-emacs-directory))
-
-  ;; Org-mode configuration
-  ;; WARNING: need to customize things inside the elisp file before use! See
-  ;; the file extras/org-intro.txt for help.
-  ;(load-file (expand-file-name "extras/org.el" user-emacs-directory))
-
-  ;; Email configuration in Emacs
-  ;; WARNING: needs the `mu' program installed; see the elisp file for more
-  ;; details.
-  ;(load-file (expand-file-name "extras/email.el" user-emacs-directory))
-
-  ;; Tools for academic researchers
-  ;(load-file (expand-file-name "extras/researcher.el" user-emacs-directory))
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;;;
-  ;;;   Built-in customization framework
-  ;;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
   (custom-set-variables
    ;; custom-set-variables was added by Custom.
    ;; If you edit it by hand, you could mess it up, so be careful.
@@ -242,32 +108,72 @@
 
 (setq ring-bell-function nil)
 
-(setopt tab-width 4)
+(defmacro new-keymap (name binding)
+  `(progn
+     (setq ,(concat "my/" name "-map") (make-sparse-keymap))
+     (define-key global-map
+                 (kbd ,(concat "C-c " binding))
+                 (list (,name . ,(make-symbol (concat "my/" name "-map")))))))
 
-;; (global-company-mode -1)
+(setq my/errors-map (make-sparse-keymap))
+(define-key global-map (kbd "C-c e") `("errors" . ,my/errors-map))
+
+(use-package general
+  :ensure t)
+
+(setq my/consult-map (make-sparse-keymap))
+(define-key global-map (kbd "C-c s") `("consult" . ,my/consult-map))
+
+(setq my/goto-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c l") `("goto" . ,my/goto-map))
+
+(setq my/window-map (make-sparse-keymap))
+(define-key global-map (kbd "C-c w") `("windows" . ,my/window-map))
+
+;; (use-package sticky-scroll-mode
+;;   :ensure t
+;;   :hook
+;;   (prog-mode . sticky-scroll-mode))
+
+(use-package highlight-indent-guides
+  :ensure t
+  :hook
+  (prog-mode . highlight-indent-guides-mode)
+  (yaml-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'bitmap
+        highlight-indent-guides-auto-enabled nil)
+  (set-face-background 'highlight-indent-guides-odd-face "gray45")
+  (set-face-background 'highlight-indent-guides-even-face "gray45")
+  (set-face-foreground 'highlight-indent-guides-character-face "gray45"))
 
 (use-package dash :ensure t)
 
 (use-package ag :ensure t)
 
+(use-package all-the-icons
+  :ensure t)
+
+(use-package ultra-scroll
+;:load-path "~/code/emacs/ultra-scroll" ; if you git clone'd instead of package-vc-install
+  :vc (:url "https://github.com/jdtsmith/ultra-scroll")
+  :init
+  (setq scroll-conservatively 101 ; important!
+	scroll-margin 0) 
+  :config
+  (ultra-scroll-mode 1))
+
 (winner-mode 1)
 (recentf-mode 1)
 
 (eldoc-mode 1)
-;; theme
-(use-package dracula-theme
-  :config
-  (add-to-list 'custom-theme-load-path "~/bedrock/themes")
-  :init
-  (load-theme 'dracula t))
-
-(setq initial-buffer-choice "~/bedrock/config.org")
 
 ;; get use-package to behave
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
         ("org" . "https://orgmode.org/elpa/")
-        ("elpa" . "https://elpa.gnu.org/packages/")))
+        ("elpa" . "https://elpa.gnu.org/packages/")
+	  ("nongnu" . "https://elpa.nongnu.org/nongnu/")))
 
 (use-package use-package-chords
   :ensure t
@@ -277,6 +183,121 @@
   :ensure t
   :config (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 
+(use-package hl-todo
+  :ensure t
+  :hook (prog-mode . hl-todo-mode)
+  :config
+  (setq hl-todo-highlight-punctuation ":"
+        hl-todo-keyword-faces
+        `(("TODO"       warning bold)
+          ("FIXME"      error bold)
+          ("HACK"       font-lock-constant-face bold)
+          ("REVIEW"     font-lock-keyword-face bold)
+          ("NOTE"       success bold)
+          ("DEPRECATED" font-lock-doc-face bold))))
+
+(let ((dir (expand-file-name "~/emacs/scripts")))
+(dolist (f (directory-files dir t ".el"))
+	    (load-file f)))
+
+(use-package doom-themes
+:ensure t
+:custom
+(doom-themes-enable-bold t)
+(doom-themes-enable-italic t)
+:config
+(load-theme 'doom-dracula t)
+
+;; Enable flashing mode-line on errors
+(doom-themes-visual-bell-config)
+;; or for treemacs users
+;; Corrects (and improves) org-mode's native fontification.
+(doom-themes-org-config))
+
+(use-package dracula-theme
+  :ensure t
+  :disabled t
+  :init
+  (load-theme 'dracula t))
+
+(use-package modus-themes
+  :ensure t
+
+;; :disabled t
+
+:custom
+
+(modus-themes-custom-auto-reload t)
+
+(modus-themes-bold-constructs t)
+(modus-themes-italic-constructs t)
+
+(modus-themes-completions
+    '((matches . (extrabold underline))))
+
+:config
+;; dracula inspired colore scheme
+(setq modus-themes-common-palette-overrides
+    '((type "#FF79C6")
+    (builtin "#FF79C6")
+    (constant "#F1FA8C")
+    (variable "#8BE9FD")
+    (keyword "#50FA7B")
+    (string "#FFB86C")
+    (rx-construct "#39b859")
+    (rx-backslash "#ba7a36")
+    (property "#acfadc")
+    (comment "#6272A4")
+    (preprocessor red)
+    (fnname "#BD93F9"))) 
+    ;; (setq modus-themes-common-palette-overrides
+    ;;     `(
+    ;;       ;; From the section "Make the mode line borderless"
+    ;;       (border-mode-line-active unspecified)
+    ;;       (border-mode-line-inactive unspecified)
+
+    ;;       ;; From the section "Make matching parenthesis more or less intense"
+    ;;       (bg-paren-match bg-magenta-intense)
+    ;;       (underline-paren-match fg-main)
+
+    ;;       ;; And expand the preset here.  Note that the ,@ works because
+    ;;       ;; we use the backtick for this list, instead of a straight
+    ;;       ;; quote.
+    ;;       ,@modus-themes-preset-overrides-intense))
+    ;;       ;; ))
+
+;;  (load-theme 'modus-vivendi-tinted :no-confirm)
+)
+
+(use-package ef-themes
+  :ensure t
+  :disabled t
+  :config
+  ;; disable other themes
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme 'ef-owl t))
+
+(use-package popper
+  :ensure t ; or :straight t
+  :bind (("C-`"   . popper-toggle)
+         ("s-."   . popper-cycle)
+         ("C-M-`" . popper-toggle-type)
+         ("C-<escape>" . popper-kill-latest-popup))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))
+
+(use-package solaire-mode
+  :ensure t
+  :init
+  (solaire-global-mode +1))
+
 (use-package nerd-icons
   :ensure t)
 
@@ -284,7 +305,34 @@
   :ensure t
   :config
   (setq doom-modeline-minor-modes nil)
+  :hook
+  (lsp-mode . (lambda () (setq-local doom-modeline-buffer-name nil)))
   :init (doom-modeline-mode 1))
+
+(use-package spaceline
+  :ensure t)
+
+(use-package spaceline-all-the-icons
+  :ensure t
+  :disabled t
+  :after spaceline all-the-icons
+  :requires all-the-icons
+  :config (if (display-graphic-p) (spaceline-all-the-icons-theme)))
+
+(midnight-mode 1)
+;; number of days before a buffer is eligible for killing
+(setq clean-buffer-list-delay-general 1)
+(add-to-list 'clean-buffer-list-kill-regexps
+             (rx buffer-start "magit-" (or "process" "diff")))
+
+(setq my/project-map (make-sparse-keymap))
+(define-key global-map (kbd "C-c p") `("project" . ,my/project-map))
+
+(defun backward-kill-line ()
+  (interactive)
+  (set-mark-command nil)
+  (back-to-indentation)
+  (kill-region (region-beginning) (region-end)))
 
 (use-package emacs
   :custom
@@ -294,11 +342,40 @@
   ;; setting is useful beyond Corfu.
   (read-extended-command-predicate #'command-completion-default-include-p)
   (enable-recursive-minibuffers t)
-  :config
-  (global-hl-line-mode -1)
-  (hl-line-mode -1)
-  (electric-pair-mode 1)
-  :init
+  ;; more comfort
+  (line-spacing 3)
+  (scroll-conservatively 101)
+  ;; use a very narrow window divider
+  (window-divider-default-right-width 1)
+  (window-divider-default-bottom-width 1)
+  (scroll-bar-mode nil)
+  (xref-prompt-for-identifier nil)
+  (desktop-save-mode 1)
+  (cursor-style 'bar)
+  ;; don't show cursors in non-active windows
+  (cursor-in-non-selected-windows nil)
+  :config 
+  (electric-pair-mode 1)    
+  (menu-bar-mode -1) ;; It doesn't help me at all
+  ;; wrap on whitespace
+  (global-word-wrap-whitespace-mode 1)
+  (auto-save-mode -1) ; turn off autosave
+  (setq auto-save-timeout 3)
+  (setq ediff-window-setup-function #'ediff-setup-windows-plain)
+  (menu-bar-bottom-and-right-window-divider)
+  (scroll-bar-mode -1)
+  ;; font installed from https://www.jetbrains.com/lp/mono/
+  (add-to-list 'default-frame-alist '(font . "DroidSansM Nerd Font"))
+  :bind
+  ("C-<return>" . recenter)
+  ("M-<backspace>" . backward-kill-word)
+  ("C-M-RET" . xref-find-references)
+  ("s-K" . kill-buffer-and-window)
+  ("C-M-." . xref-find-definitions-other-window)
+  ("C-q" . bury-buffer)
+  ("s-<backspace>" . backward-kill-line)
+("C-M-z" . zap-up-to-char)
+:init
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
             (replace-regexp-in-string
@@ -313,49 +390,225 @@
   (defalias 'kmacro-insert-macro 'insert-kbd-macro)
   (define-key kmacro-keymap (kbd "I") #'kmacro-insert-macro))
 
-(use-package projectile
+(setq markdown-command "glow")
+
+(use-package kkp
   :ensure t
   :config
+  (global-kkp-mode 1))
+
+(unless (display-graphic-p)
+  (menu-bar-mode -1))
+
+(use-package projectile
+  :ensure t
+  :disabled
+  :config
+  ;; open up a scratch buffer for the project
   (setq projectile-switch-project-action 'projectile-dired)
   :bind
   (("C-c p" . #'projectile-command-map))
   :init (projectile-mode +1))
 
-(use-package ag :ensure t)
+(use-package perspective
+  :disabled
+  :ensure t
+  :bind
+  (("C-x C-b" . persp-list-buffers)
+   :map persp-mode-map
+   ("C-c C-p '" . persp-switch-last)
+   ("C-c C-p C-s" . persp-switch)
+   ("C-c C-p N" . my/new-persp)) ; or use a nicer switcher, see below
+  :custom
+  (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
+  :init
+  (persp-mode))
+
+;; (defun my/new-persp (name)
+;;   (interactive "SName: ")
+;;   (persp-new name))
+
+(use-package persp-mode
+  :ensure t
+  :disabled
+  :bind
+  (("C-x C-b" . persp-list-buffers)
+   :map persp-mode-map
+   ("C-c C-p '" . persp-switch-last)
+   ("C-c C-p C-s" . persp-switch)
+   ("C-c C-p N" . my/new-persp)) ; or use a nicer switcher, see below
+  :custom
+  (persp-mode-prefix-key (kbd "C-c C-p"))  ; pick your own prefix key here
+  :init
+  (persp-mode))
+
+(use-package persp-projectile
+  :disabled
+  :ensure t
+  :bind
+  (("C-c p p" . projectile-persp-switch-project)))
 
 (use-package origami
   :ensure t
   :bind
-  (("C-c z z" . origami-forward-toggle-node)
-   ("C-c z C" . origami-close-all-nodes)
-   ("C-c z O" . origami-open-all-nodes)
-   ("C-c z b" . origami-previous-fold)
-   ("C-c z n" . origami-next-fold))
+  (("C-c C-z z" . origami-forward-toggle-node)
+   ("C-c C-z C" . origami-close-all-nodes)
+   ("C-c C-z O" . origami-open-all-nodes)
+   ("C-c C-z b" . origami-previous-fold)
+   ("C-c C-z n" . origami-next-fold))
   :init (global-origami-mode))
 
-(keymap-set global-map "C-c w d" 'delete-window)
+(use-package all-the-icons
+  :if (display-graphic-p))
 
-(use-package popper
-  :ensure t ; or :straight t
-  :bind (("C-`"   . popper-toggle)
-         ("s-."   . popper-cycle)
-         ("C-M-`" . popper-toggle-type)
-         ("C-<escape>" . popper-kill-latest-popup))
+(use-package nerd-icons
+  :if (display-graphic-p))
+
+(use-package centaur-tabs
+  :disabled t
+  :ensure t
+  :bind
+  ("s-}" . centaur-tabs-forward)
+  ("s-{" . centaur-tabs-backward)
+  ("M-s-<left>" . centaur-tabs-backward)
+  ("M-s-<right>" . centaur-tabs-forward)
+  :config
+  (setq centaur-tabs-set-icons t
+        centaur-tabs-icon-type 'all-the-icons
+        centaur-tabs-style "bar"
+        centaur-tabs-height 20
+        centaur-tabs-set-bar 'left
+        centaur-tabs-set-close-button nil
+        centaur-tabs-show-new-tab-button nil
+        centaur-tabs-cycle-scope 'tabs
+        centaur-tabs-set-modified-marker t)
+  (centaur-tabs-change-fonts "DroidSansM Nerd Font" 100)
   :init
-  (setq popper-reference-buffers
-        '("\\*Messages\\*"
-          "Output\\*$"
-          "\\*Async Shell Command\\*"
-          "*vterm*"
-          help-mode
-          compilation-mode))
-  (popper-mode +1)
-  (popper-echo-mode +1))
+  (centaur-tabs-mode -1) ;; off for now
+  :hook
+  ;; turn off centaur tabs in these modes
+  (dired-mode . centaur-tabs-local-mode)
+  (vterm-mode . centaur-tabs-local-mode))
+
+(define-key my/window-map "d" '("delete" . delete-window))
+
+(keymap-set my/window-map "m" '("maximize" . maximize-window))
+
+(use-package neotree
+  :ensure t
+  :defer t
+  :config
+   (defun neotree-project-dir ()
+     "Open NeoTree using the git root."
+     (interactive)
+     (let ((project-dir (projectile-project-root))
+           (file-name (buffer-file-name)))
+       (neotree-toggle)
+       (if project-dir
+           (if (neo-global--window-exists-p)
+               (progn
+		 (neotree-dir project-dir)
+		 (neotree-find file-name)))
+	 (message "Could not find git project root."))))
+  :custom
+  (neo-theme 'icons)
+  (neo-window-fixed-size nil)
+  :bind
+  ("C-<f8>" . neotree-project-dir)
+  ("<f8>" . neotree-project-dir))
 
 (use-package treemacs
+  :disabled t
   :ensure t
+  :defer t
   :config
-  (setq treemacs-follow-mode t))
+  (progn
+    (setq treemacs-collapse-dirs                   (if treemacs-python-executable 3 0)
+          treemacs-deferred-git-apply-delay        0.5
+          treemacs-directory-name-transformer      #'identity
+          treemacs-display-in-side-window          t
+          treemacs-eldoc-display                   'simple
+          treemacs-file-event-delay                2000
+          treemacs-file-extension-regex            treemacs-last-period-regex-value
+          treemacs-file-follow-delay               0.2
+          treemacs-file-name-transformer           #'identity
+          treemacs-follow-after-init               t
+          treemacs-expand-after-init               t
+          treemacs-find-workspace-method           'find-for-file-or-pick-first
+          treemacs-git-command-pipe                ""
+          treemacs-goto-tag-strategy               'refetch-index
+          treemacs-header-scroll-indicators        '(nil . "^^^^^^")
+          treemacs-hide-dot-git-directory          t
+          treemacs-indentation                     2
+          treemacs-indentation-string              " "
+          treemacs-is-never-other-window           nil
+          treemacs-max-git-entries                 5000
+          treemacs-missing-project-action          'ask
+          treemacs-move-files-by-mouse-dragging    t
+          treemacs-move-forward-on-expand          nil
+          treemacs-no-png-images                   nil
+          treemacs-no-delete-other-windows         t
+          treemacs-project-follow-cleanup          nil
+          treemacs-persist-file                    (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+          treemacs-position                        'left
+          treemacs-read-string-input               'from-child-frame
+          treemacs-recenter-distance               0.1
+          treemacs-recenter-after-file-follow      nil
+          treemacs-recenter-after-tag-follow       nil
+          treemacs-recenter-after-project-jump     'always
+          treemacs-recenter-after-project-expand   'on-distance
+          treemacs-litter-directories              '("/node_modules" "/.venv" "/.cask")
+          treemacs-project-follow-into-home        nil
+          treemacs-show-cursor                     nil
+          treemacs-show-hidden-files               t
+          treemacs-silent-filewatch                nil
+          treemacs-silent-refresh                  nil
+          treemacs-sorting                         'alphabetic-asc
+          treemacs-select-when-already-in-treemacs 'move-back
+          treemacs-space-between-root-nodes        t
+          treemacs-tag-follow-cleanup              t
+          treemacs-tag-follow-delay                1.5
+          treemacs-text-scale                      nil
+          treemacs-user-mode-line-format           nil
+          treemacs-user-header-line-format         nil
+          treemacs-wide-toggle-width               70
+          treemacs-width                           35
+          treemacs-width-increment                 1
+          treemacs-width-is-initially-locked       t
+          treemacs-workspace-switch-cleanup        nil)
+
+    ;; The default width and height of the icons is 22 pixels. If you are
+    ;; using a Hi-DPI display, uncomment this to double the icon size.
+    ;;(treemacs-resize-icons 44)
+
+    (treemacs-follow-mode t)
+    (treemacs-filewatch-mode t)
+    (treemacs-fringe-indicator-mode 'always)
+    (when treemacs-python-executable
+      (treemacs-git-commit-diff-mode t))
+
+    (pcase (cons (not (null (executable-find "git")))
+                 (not (null treemacs-python-executable)))
+      (`(t . t)
+       (treemacs-git-mode 'deferred))
+      (`(t . _)
+       (treemacs-git-mode 'simple)))
+
+    (treemacs-hide-gitignored-files-mode nil))
+  :bind
+  ("C-<f8>" .  treemacs-add-and-display-current-project-exclusively)
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t d"   . treemacs-select-directory)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))
+
+(use-package treemacs-all-the-icons
+  :after (treemacs)
+  :ensure t)
 
 (use-package eyebrowse
   :ensure t
@@ -363,162 +616,167 @@
 
 (use-package ace-window
   :ensure t
-  :bind
-  (("C-c w w" . ace-window)
-   ("C-c w u" . winner-undo)))
+  :bind    
+  (:map my/window-map
+        ("w" . ace-window)
+        ("u" . winner-undo)))
 
 (use-package avy
   :ensure t
   :bind
-  (("C-c a l" . avy-goto-line)
-   ("C-c a c" . avy-goto-char-timer)))
+  ("C-s" . avy-goto-char)
+  ("C-'" . avy-resume)
+  ("C-t" . avy-goto-char-timer)
+  ("C-S-F" . avy-goto-char)
+  (:map my/goto-map
+        ("l" . avy-goto-line)
+        ("t" . avy-goto-char-timer)
+        ("'" . avy-resume)))
 
-(setq org-tag-alist (append '((:startgroup . nil) ; at most one of the following
-                            ("@home" . ?h)
-                            ("@work" . ?w)
-                            ("@out". ?o)
-                            (:endgroup . nil)
-                            ;; any of the following
-                            ("project" . ?p)
-                            ("learning" . ?l))
-                          org-tag-alist-for-agenda))
-
-(setq my/org-todo-keywords '(
-                             ("TODO(t)" . org-todo)
-                             ("NEXT(n)" .  (:foreground "#34ebd8" :weight bold :slant italic))
-                             ("PROG(p!)" . (:foreground "green" :weight bold))
-                             ("HOLD(h@)" . (:background "orange" :foreground "white")) ; in progress but held up
-                             ("|")
-                             ("DONE(d!)" . org-done)
-                             ("WONT(w@/!)" . (:foreground "red" :weight bold))))
-
-(use-package org
+(use-package rg
   :ensure t
   :config
-  (setq org-agenda-files (list (expand-file-name "~/org")))
-  ;; set faces
-  (setq org-todo-keywords (list (append '(sequence)
-                                      (seq-map #'(lambda (elt)
-                                                   (if (listp elt)
-                                                       (car elt)
-                                                     elt))
-                                               my/org-todo-keywords))))
+  ;; TODO -- suffix for not ignoring bitbucket vendors
+  
+  ;; put an option to ignore vendor files
+  (transient-insert-suffix 'rg-menu "-h" '(1 "-v" "No vendor" "--glob='!vendor/*'"))
 
-(setq org-todo-keyword-faces (let ((f (lambda (elt)
-                                       (if (listp elt)
-                                           `(
-                                            ,(seq-take-while #'(lambda (elt) (not (equal ?\( elt))) (car elt))
-                                            .
-                                            ,(cdr elt))
-                                         elt)
-                                       )))
-                               (seq-map #'(lambda (elt) (funcall f elt)) my/org-todo-keywords)))
-;; 
-  ;; config files
-  (setq +org-chores-file (expand-file-name "~/org/chores.org"))
-  (setq org-agenda-start-day nil
-        org-agenda-span 1)
+  ;; this is for the RESULTS buffer
+  ;; on by default, ignores vendor
+  (rg-define-toggle "--glob='!vendor/*'" "v" t)
+  ;; off by default, ignores test files
+  (rg-define-toggle "--glob='!*test.go' --glob='!*.test.ts'" (kbd "C-c t"))
+
+  
+  (rg-define-search search-ignore-vendor-test
+    "Ignore vendor and test directories for the search"
+    :query ask
+    :files current ; use the current buffer's file type to find it
+    :dir project
+    :flags ("--glob '!vendor/*'" "--glob '!*test*'"))
+  
+  (rg-menu-transient-insert "Search" "f" "Project" 'search-ignore-vendor-test)
+  (rg-enable-default-bindings (kbd "C-c r")))
+
+(use-package better-jumper
+  :ensure t
+  ;; set up the keymap for jumper if it's enabled
+  :config
+  (setq my/jump-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-j") `("jump" . ,my/jump-map))
   :bind
-  (("C-c o a" . org-agenda)
-   ("C-c o c" . org-capture))
+  (:map my/jump-map
+		("C-f" . better-jumper-jump-forward)
+		("C-b" . better-jumper-jump-backward)
+		("C-j" . better-jumper-set-jump)))
+
+(defun surround/matching (c)
+  (cond ((eq ?\( c) ?\))
+        ((eq ?\[ c) ?\])
+        ((eq ?\{ c) ?\})
+        ((eq ?\< c) ?\>)
+        (t c))) ;; default is to just drop in the character
+
+(defun surround-region (start end char)
+  "Insert `char' (and maybe its matching closing character) around a region
+defined by `start' and `end'."
+  (interactive "r\ncSurround:")
+  (if (eq char ?\e)	; allow escape to exit input
+	    (deactivate-mark) ; and abort the mark	
+    (save-excursion
+      (goto-char start)
+      (insert char)
+      (goto-char (1+ end))
+      (insert (surround/matching char)))))
+
+(defun my/find-symbol-boundaries (point)
+  (let* ((start point) (end point)
+	 (whitespace '(?\s ?\t ?\n ?\f ?\r)))
+	
+    (while (not (-contains? whitespace (char-before start)))
+      (setq start (1- start)))
+    (while (not (-contains? whitespace (char-after end)))
+      (setq end (1+ end)))
+    (list start end)))
+
+ (defun my/highlight-symbol-boundary (point)
+   (interactive "d")
+   (let* ((points (my/find-symbol-boundaries point))
+	   (start (car points))
+	   (end (cadr points)))
+     (goto-char start)
+     (set-mark start)
+     (goto-char end)))
+
+(define-key global-map (kbd "C-M-w") #'my/highlight-symbol-boundary) ; global is good here
+
+(defun my/move-forward-to-boundary (point)
+  (interactive "d")
+  (let ((end (cadr (my/find-symbol-boundaries point))))
+    (goto-char end)))
+
+(defun my/move-backward-to-boundary (point)
+  (interactive "d")
+  (let ((start (car (my/find-symbol-boundaries point))))
+    (goto-char start)))
+
+(defun copy-filename ()
+  (interactive)
+  (kill-new (buffer-file-name)))
+
+(load-file (expand-file-name "~/emacs/bedrock-config/evil.el"))
+
+(defun my/god-mode-change ()
+  (interactive)
+  (when (region-active-p)
+    (kill-region (region-beginning) (region-end))
+    (god-local-mode -1)))
+
+(use-package god-mode
+  :disabled t
+  :ensure t
+  :bind
+  ("<escape>" . #'god-mode-all)
+  ("C-z" . repeat)
+  ("C-<f3>" . kmacro-start-macro-or-insert-counter)
+  ("C-<f4>" . kmacro-end-or-call-macro)
+  (:map god-local-mode-map
+	("S" . surround-region)
+        ("i" . god-mode-all)
+        ("a" . beginning-of-line-text)
+        ("[" . backward-paragraph)
+        ("]" . forward-paragraph)
+        ("C" . my/god-mode-change))
+  :chords
+  ("jk" . god-mode-all)
+  :config
+  (setq god-mode-alist '((nil . "C-") ("m" . "M-") ("M" . "C-M-")))
+
+  (defun god-mode-cursor ()
+    (if god-local-mode
+        (setq-local cursor-type 'box)
+      (setq-local cursor-type 'bar)))
+  (add-hook 'post-command-hook #'god-mode-cursor)
   :init
-  (add-hook 'org-mode-hook #'org-indent-mode))
+  (god-mode))
 
-(use-package org-super-agenda
-  :ensure t
-  :init (org-super-agenda-mode 1))
-
-(setq org-agenda-custom-commands
-    '(("c" "Super agenda"
-       ((agenda "" ((org-agenda-overriding-header "")
-                    (org-super-agenda-groups
-                     '((:log t)
-                       (:name "Overdue"
-                        :deadline past)
-                       (:name "Habits"
-                        :habit t)
-                       (:name "Today"
-                        :time-grid t
-                        :date today)
-                       (:name "Important"
-                        :priority "A"
-                        :face (:weight ultra-bold :background "blue")
-                        :order 1)
-                       (:name "Unstarted"
-                        :scheduled past)
-                       ))))
-        (alltodo "" ((org-agenda-overriding-header "")
-                     (org-super-agenda-groups
-                      `((:log t)
-                        (:name "Important"
-                         :priority "A"
-                         :face (:weight ultra-bold :background "blue")
-                         :order 0)
-                        (:name "Next"
-                         :todo "NEXT"
-                         :order 2)
-                       (:name "Coming up"
-                              :scheduled future)
-                        (:name "In progress"
-                         :todo "PROG"
-                         :order 1)
-                        (:name "Daphne"
-                         :tag "daphne")
-                        (:name "Chores"
-                         :file-path ,(expand-file-name +org-chores-file) ; back-quoted list allows evaluation with `,`
-                         :face (:slant italic)
-                         :order 2)
-                        (:name "Can wait"
-                         :priority "C")
-                        (:name "If time"
-                         :priority "B")
-                        (:discard (:file-path ,(expand-file-name "~/org/bills.org")))
-                        (:discard (:file-path ,(expand-file-name "~/org/habits.org")))))))))))
-
-(setq org-capture-templates '(("a" "Agenda")
-                              ("ad" "Deadline" entry
-                               (file+olp+datetree +org-capture-agenda-file)
-                               "* %?\nDEADLINE: %^{at}t")
-                              ("t" "Todos")
-                              ("tt" "project todo" entry
-                               (file "~/org/projects.org")
-                               "* TODO %?\n%i")
-                              ("tn" "today" entry
-                               (file+headline "~/org/todo.org" "Todos")
-                               "* TODO %?\n%t")
-                              ("td" "deadline" entry
-                               (file+headline "~/org/todo.org" "Todos")
-                               "* TODO %?\nDEADLINE: %^{at}t")
-                              ("ts" "scheduled" entry
-                               (file+headline "~/org/todo.org" "Todos")
-                               "* TODO %?\nSCHEDULED: %^{at}t")
-                              ("c" "chore" entry
-                               (file +org-chores-file)
-                               "* TODO %?\nDEADLINE: %t")))
-
-(use-package org-brain
-  :ensure t)
-
-(use-package org-roam
-  :ensure t
-  :config
-  (org-roam-db-autosync-mode 1)
-  (setq org-roam-db-location "~/.config/emacs/.local/cache/org-roam.db")
-  :bind
-  (("C-c o r i" . org-roam-node-insert)
-   ("C-c o r f" . org-roam-node-find)))
+(setq my/yas-map (make-sparse-keymap))
+(define-key global-map (kbd "C-c C-y") `("yas" . ,my/yas-map))
 
 (use-package yasnippet
   :ensure t
+  :bind
+  (:map my/yas-map
+	  ("n" . yas-new-snippet)
+	  ("s" . yas-insert-snippet))
   :config (yas-global-mode 1))
 
 (defun reload()
   (interactive)
-  (org-babel-load-file (expand-file-name "~/bedrock/config.org"))
-  (load (expand-file-name "~/bedrock/config.el")))
+  (org-babel-load-file (expand-file-name "~/emacs/bedrock-config/config.org"))
+  (load (expand-file-name "~/emacs/bedrock-config/config.el")))
 
 (use-package vertico
-  :after meow
   :ensure t
   :custom
   (vertico-count 20) ;; Show more candidates
@@ -528,10 +786,22 @@
   ;; (keymap-set vertico-map "TAB" #'vertico-next)
   ;; (keymap-set vertico-map "<backtab>" #'vertico-previous)
   :bind
-  (("C-c '" . vertico-repeat)
-   (:map vertico-map 
-         ("<escape>" . vertico-suspend)))
-  :init (vertico-mode 1))
+  (("C-c '" . vertico-suspend)
+   (:map vertico-map
+         ("<escape>" . abort-recursive-edit)
+         ("<tab>" . vertico-next)
+     ("C-i" . vertico-quick-insert)
+     ("C-o" . vertico-quick-exit)
+     ;; keeping these on so that I can test out which I like best for multiform modes
+     ("M-B" . vertico-multiform-buffer)
+     ("M-F" . vertico-multiform-flat)
+     ("M-G" . vertico-multiform-grid)
+     ("M-R" . vertico-multiform-reverse)
+     ("M-V" . vertico-multiform-vertical)
+     ("M-U" . vertico-multiform-unobtrusive)
+   ))
+  :init
+(vertico-mode 1))
 
 (use-package vertico-suspend
   :after vertico
@@ -545,69 +815,168 @@
   :after vertico
   :bind
   (:map vertico-map
-   ("M-DEL" . vertico-directory-delete-word)))
+   ("M-DEL" . vertico-directory-up)
+ ("RET" . vertico-directory-enter)))
+
+(use-package vertico-multiform
+  :after vertico
+  :ensure nil
+  :custom
+  
+  (vertico-multiform-commands
+	 '(
+	   (consult-imenu buffer indexed)
+	   (consult-outline buffer indexed)
+	   (consult-project-buffer reverse)
+	   (find-file reverse)
+	   
+	   (xref-find-references flat)
+	   ))
+  :init
+  (vertico-multiform-mode)
+  )
 
 (use-package orderless
   :ensure t
   :custom
   (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles basic partial-completion))
+				     (lsp-capf (styles orderless)))))
 
 (use-package company
+  :disabled t
   :ensure t
   :config
   (setq company-tooltip-align-annotations t
-        company-show-quick-access t
+		 ;;         company-show-quick-access t
         company-files-exclusions '(".git/" ".DS_Store")
         ;; use letters instead of icons
         company-format-margin-function #'company-text-icons-margin
-        company-text-icons-add-background t)
+        company-text-icons-add-background t
+        ;; make it so that I do it myself, please
+        company-idle-delay 0.3)
   ;; customize the annotation faces
-  (custom-set-faces
-   '(company-tooltip-annotation ((t (:foreground "dark gray")))))
-  (append company-backends '(:with company-yasnippet))
+  ;; (custom-set-faces
+  ;;  '(company-tooltip-annotation ((t (:foreground "dark gray")))))
+  ;; (
+   (setq company-backends '((:separate company-yasnippet company-capf company-keywords)))
   :bind
+  ("M-i" . company-manual-begin)
   (:map company-active-map
         ([tab] . company-complete-common-or-cycle)
         ("<escape>" . company-abort))
   :init
   (global-company-mode 1))
 
+(use-package company-box
+  :disabled t
+  :ensure t
+  :requires company
+  :config
+  (setq company-box-doc-delay 0.8)
+  :hook (company-mode . company-box-mode))
+
+;; (defun turn-off-company ()
+;;   (company-mode -1))
+;;   (add-hook 'prog-mode-hook #'turn-off-company)
+
 (use-package corfu
   :ensure t
   :custom
   (corfu-cycle t)
-  (corfu-preselect 'prompt)
+  (corfu-preselect 'first)
+  (corfu-preview-current nil)
+  (corfu-quit-at-boundary 'separator)
+  (corfu-on-exact-match 'quit)
+  (corfu-auto t)
+  (corfu-quit-no-match t)
+  ;; corfu popup
+  (corfu-popupinfo-mode t)
+  (corfu-popupinfo-delay '(1.0 . 0.5))
   :config
-  (setq corfu-auto t
-        corfu-auto-prefix 2)
   :bind
   (:map corfu-map
+      ("M-SPC" . corfu-insert-separator)
       ("TAB" . corfu-next)
       ([tab] . corfu-next)
       ("S-TAB" . corfu-previous)
-      ([backtab] . corfu-previous))
-  :init (global-corfu-mode -1))
+      ([backtab] . corfu-previous)
+	("<return>" . corfu-insert)
+	("<escape>" . corfu-quit))
+  :init
+  (global-corfu-mode 1)
+  (corfu-popupinfo-mode))
+
+(use-package cape
+	:disabled
+	:ensure t
+  ;; Bind prefix keymap providing all Cape commands under a mnemonic key.
+  ;; Press C-c p ? to for help.
+  :bind ("C-c C-p" . cape-prefix-map) ;; Alternative key: M-<tab>, M-p, M-+
+  ;; Alternatively bind Cape commands individually.
+  ;; :bind (("C-c p d" . cape-dabbrev)
+  ;;        ("C-c p h" . cape-history)
+  ;;        ("C-c p f" . cape-file)
+  ;;        ...)
+  :init
+  ;; Add to the global default value of `completion-at-point-functions' which is
+  ;; used by `completion-at-point'.  The order of the functions matters, the
+  ;; first function returning a result wins.  Note that the list of buffer-local
+  ;; completion functions takes precedence over the global list.
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+  ;; (add-hook 'completion-at-point-functions #'cape-history)
+  ;; ...
+)
 
 (defun search/dir ()
   (interactive)
   (let ((dir (file-name-directory (buffer-file-name))))
     (consult-ripgrep dir)))
 
+(define-key minibuffer-local-map (kbd "M-.") #'my-embark-preview)
+(defun my-embark-preview ()
+  "Previews candidate in vertico buffer, unless it's a consult command"
+  (interactive)
+  (unless (bound-and-true-p consult--preview-function)
+    (save-selected-window
+      (let ((embark-quit-after-action nil))
+        (embark-dwim)))))
+
 (use-package consult
   :ensure t
   :bind
   ;; meow SPC x b
-  (("C-c s b" . consult-project-buffer)
-   ("C-c s B" . consult-buffer)
-   ("C-c s l" . consult-line)
-   ("C-c s f" . consult-recent-file)
-   ("C-c s o" . consult-outline)
-   ("C-c s i" . consult-imenu)
-   ("C-c b" . consult-bookmark)
-   ("C-c s r" . consult-ripgrep)
-   ("C-c s d" . search/dir)
-   ("C-c s y" . consult-yank-replace)))
+  (("C-c b" . consult-bookmark)
+   ("C-S-Y" . consult-yank-from-kill-ring)
+   ("M-'" . consult-register-store)
+   ("M-\"" . consult-register)
+   :map my/consult-map
+        (("b" . consult-project-buffer)
+        ("B" . consult-buffer)
+        ("l" . consult-line)
+        ("f" . consult-recent-file)
+        ("o" . consult-outline)
+        ("i" . consult-imenu)
+        ("I" . consult-imenu-multi)
+        ("r" . consult-ripgrep)
+        ("d" . search/dir))
+        :map my/goto-map
+        (("L" . consult-goto-line))
+        :map my/window-map
+        (("b" . consult-buffer-other-window)))
+  :init
+  (setq consult-narrow-key (kbd "<")))
+
+(define-key global-map (kbd "C-c C-r") #'consult-register-load)
+
+(use-package consult-xref
+  :ensure nil
+  :after consult
+  :config
+  (setq xref-show-xrefs-function #'consult-xref))
 
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
@@ -663,108 +1032,23 @@
 (use-package magit
   :ensure t
   :bind
-  (("C-M-g" . magit)))
+  (("C-M-g" . magit)
+   ("C-M-b" . magit-checkout)))
 
 (use-package vterm
-  :ensure t)
-
-(defun meow-setup ()
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
-  (meow-motion-overwrite-define-key
-   '("j" . meow-next)
-   '("k" . meow-prev)
-   '("<escape>" . meow-cancel-selection))
-  (meow-leader-define-key
-   ;; SPC j/k will run the original command in MOTION state.
-   '("j" . "H-j")
-   '("k" . "H-k")
-   ;; Use SPC (0-9) for digit arguments.
-   '("1" . meow-digit-argument)
-   '("2" . meow-digit-argument)
-   '("3" . meow-digit-argument)
-   '("4" . meow-digit-argument)
-   '("5" . meow-digit-argument)
-   '("6" . meow-digit-argument)
-   '("7" . meow-digit-argument)
-   '("8" . meow-digit-argument)
-   '("9" . meow-digit-argument)
-   '("0" . meow-digit-argument)
-   '("/" . meow-keypad-describe-key)
-   '("?" . meow-cheatsheet))
-  (meow-normal-define-key
-   '("0" . meow-bexpand-0)
-   '("9" . meow-expand-9)
-   '("8" . meow-expand-8)
-   '("7" . meow-expand-7)
-   '("6" . meow-expand-6)
-   '("5" . meow-expand-5)
-   '("4" . meow-expand-4)
-   '("3" . meow-expand-3)
-   '("2" . meow-expand-2)
-   '("1" . meow-expand-1)
-   '("-" . negative-argument)
-   '(";" . meow-reverse)
-   '("," . meow-inner-of-thing)
-   '("." . meow-bounds-of-thing)
-   '("[" . meow-beginning-of-thing)
-   '("]" . meow-end-of-thing)
-   '("a" . meow-append)
-   '("A" . meow-open-below)
-   '("b" . meow-back-word)
-   '("B" . meow-back-symbol)
-   '("c" . meow-change)
-   '("d" . meow-delete)
-   '("D" . meow-backward-delete)
-   '("e" . meow-next-word)
-   '("E" . meow-next-symbol)
-   '("f" . meow-find)
-   '("g" . meow-cancel-selection)
-   '("G" . meow-grab)
-   '("h" . meow-left)
-   '("H" . meow-left-expand)
-   '("i" . meow-insert)
-   '("I" . meow-open-above)
-   '("j" . meow-next)
-   '("J" . meow-next-expand)
-   '("k" . meow-prev)
-   '("K" . meow-prev-expand)
-   '("l" . meow-right)
-   '("L" . meow-right-expand)
-   '("m" . meow-join)
-   '("n" . meow-search)
-   '("o" . meow-block)
-   '("O" . meow-to-block)
-   '("p" . meow-yank)
-   '("q" . meow-quit)
-   '("Q" . meow-goto-line)
-   '("r" . meow-replace)
-   '("R" . meow-swap-grab)
-   '("s" . meow-kill)
-   '("t" . meow-till)
-   '("u" . meow-undo)
-   '("U" . meow-undo-in-selection)
-   '("v" . meow-visit)
-   '("w" . meow-mark-word)
-   '("W" . meow-mark-symbol)
-   '("x" . meow-line)
-   '("X" . meow-goto-line)
-   '("y" . meow-save)
-   '("Y" . meow-sync-grab)
-   '("z" . meow-pop-selection)
-   '("'" . repeat)
-   '("<escape>" . meow-cancel-selection)))
-
-(use-package meow
   :ensure t
-  :config
-  (meow-setup)
-  (meow-setup-indicator)
-  (setq meow-use-clipboard t)
-  :init
-  (meow-global-mode 1))
+  :bind
+  (("C-c v" . vterm)
+  ("C-c V" . vterm-other-window)))
 
 (use-package flycheck
   :ensure t
+  :bind
+  (:map my/errors-map
+   ("n" . flycheck-next-error)
+   ("p" . flycheck-previous-error)
+   ("l" . flycheck-list-errors)
+   ("h" . display-local-help))
   :init (global-flycheck-mode))
 
 (use-package markdown-mode
@@ -778,25 +1062,83 @@
         (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript"
          "v0.20.3"
          "tsx/src"))
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+                  "v0.20.3"
+                  "typescript/src")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
         (templ . ("https://github.com/vrischmann/tree-sitter-templ"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))))
 
+(setq treesit-font-lock-level 4)
+
 (use-package yaml-mode
   :ensure t)
+
+(use-package dap-mode
+  :ensure t)
+
+(use-package dap-node
+    :requires dap-mode
+    :after dap-mode
+:config
+(dap-node-setup))
+
+(use-package dap-chrome
+  :requires dap-mode
+  :after dap-mode
+  :config
+  (dap-chrome-setup))
+
+(dap-register-debug-template
+ "debug tests"
+ (list :type "node"
+       :request "launch"
+       :args  '("--inspect-brk" "/opt/homebrew/bin/jest" "--runInBand")
+       :name "Debug tests"))
+
+(dap-register-debug-template
+ "Node run file"
+ (list :type "node"
+ :request "launch"
+ :program "${workspaceFolder}/local/run-query.ts"
+ :args nil
+ :name "node run"))
+
+;; TODO: make this an interactive function to run the debug configuration
+ (dap-register-debug-template
+  "TS run"
+(list :name "TS Index"
+      :type "node"
+      :request "launch"
+      :args (expand-file-name "~/j1/query-domain/local/run-query.ts")
+      :runtimeArgs ["--nolazy" "-r" "ts-node/register"]
+      :sourceMaps t
+      :cwd (expand-file-name "~/j1/query-domain")
+      :protocol "inspector"))
 
 (defun lsp-format-and-organize-imports ()
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 
+(defun lsp-ignore-vendor ()
+  (add-to-list lsp-file-watch-ignored-directories "[/\\\\]vendor"))
+
 (use-package lsp-mode
   :ensure t
   :config
-  (setq lsp-headerline-breadcrumb-enable nil)
+  (setq lsp-headerline-breadcrumb-enable t
+        lsp-enable-file-watchers nil
+        ;; show warns in flycheck
+        lsp-diagnostics-flycheck-default-level 'warning)
+  (add-to-list 'lsp-file-watch-ignored-files "[/\\\\].*~$")
   :hook
   ;; go
   ((go-mode . lsp-deferred)
    (go-mode . lsp-format-and-organize-imports)
-   (tsx-ts-mode . lsp-deferred)))
+   ;; (go-mode . lsp-ignore-vendor)
+   (tsx-ts-mode . lsp-deferred)
+   (rust-mode . lsp-deferred)
+   (go-mode . lsp-format-and-organize-imports)))
 
 (use-package lsp-ui
   :ensure t
@@ -805,36 +1147,228 @@
   :bind
   (:map lsp-ui-mode-map
         ("M-." . lsp-ui-peek-find-definitions)
-        ("M-?" . lsp-ui-peek-find-references)))
+        ("M-?" . lsp-ui-peek-find-references)
+	    ("M-s C-i" . lsp-ui-imenu)))
 
 (use-package consult-lsp
-  :ensure t)
+  :ensure t
+  :bind
+  (:map my/consult-map
+        ("s" . consult-lsp-symbols)))
+
+(defun lsp-booster--advice-json-parse (old-fn &rest args)
+  "Try to parse bytecode instead of json."
+  (or
+   (when (equal (following-char) ?#)
+     (let ((bytecode (read (current-buffer))))
+       (when (byte-code-function-p bytecode)
+         (funcall bytecode))))
+   (apply old-fn args)))
+(advice-add (if (progn (require 'json)
+                       (fboundp 'json-parse-buffer))
+                'json-parse-buffer
+              'json-read)
+            :around
+            #'lsp-booster--advice-json-parse)
+
+(defun lsp-booster--advice-final-command (old-fn cmd &optional test?)
+  "Prepend emacs-lsp-booster command to lsp CMD."
+  (let ((orig-result (funcall old-fn cmd test?)))
+    (if (and (not test?)                             ;; for check lsp-server-present?
+             (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
+             lsp-use-plists
+             (not (functionp 'json-rpc-connection))  ;; native json-rpc
+             (executable-find "emacs-lsp-booster"))
+        (progn
+          (when-let ((command-from-exec-path (executable-find (car orig-result))))  ;; resolve command from exec-path (in case not found in $PATH)
+            (setcar orig-result command-from-exec-path))
+          (message "Using emacs-lsp-booster for %s!" orig-result)
+          (cons "emacs-lsp-booster" orig-result))
+      orig-result)))
+(advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command)
 
 (use-package go-mode
   :config
   (setq lsp-go-use-gofumpt t)
+  :bind
+  (:map go-mode-map
+  ("C-c C-d" . godoc-at-point))
   :ensure t)
 
 (use-package flycheck-golangci-lint
-  :ensure t
-  :hook (go-mode . flycheck-golangci-lint-setup))
+      :ensure t
+      :hook (go-mode . flycheck-golangci-lint-setup))
+
+
+(add-hook 'go-mode-hook (lambda()
+                            (flycheck-golangci-lint-setup)
+                            (setq flycheck-local-checkers '((lsp . ((next-checkers . (golangci-lint))))))))
 
 (add-to-list 'auto-mode-alist '("\\.go" . go-mode))
 (add-to-list 'major-mode-remap-alist '(go-ts-mode . go-mode))
 (add-hook 'go-mode #'lsp-format-and-organize-imports)
 
+(use-package go-eldoc
+  :ensure t
+  :disabled
+  :hook
+  (go-mode . go-eldoc-setup))
+
+(use-package go-guru
+  :ensure t
+  :hook
+  (go-mode . go-guru-hl-identifier-mode))
+
+(use-package go-fill-struct
+  :ensure t)
+
 (use-package templ-ts-mode
   :ensure t)
 
-(add-to-list 'auto-mode-alist '("\\.tsx?" . tsx-ts-mode))
-(add-hook 'tsx-ts-mode #'lsp-format-and-organize-imports)
+(use-package rust-mode
+  :ensure t
+  :hook
+  (rust-mode . lsp-))
+
+(add-to-list 'auto-mode-alist '("\\.[jt]sx?" . tsx-ts-mode)) ; going to try out webmode for a little, think it will be nice
+  (add-hook 'tsx-ts-mode-hook #'lsp-deferred)
+
+(add-hook 'typescript-ts-mode-hook #'lsp-deferred)
+
+(use-package web-mode
+  :ensure t
+  :disabled t
+  :hook
+  (web-mode . lsp-deferred)
+  (web-mode . lsp-format-and-organize-imports)
+  :config
+  (add-to-list 'auto-mode-alist '("\\.[tj]sx" . web-mode)))
+
+(defun open-playground-file ()
+  (interactive)
+  ;; TODO: minor mode for keymaps for running?
+  (let ((file (expand-file-name "~/playground/playground.js")))
+    (find-file-other-window file)))
+
+(defun node-run-region (beg end)
+  ;; TODO: needs some work
+  (interactive "r")
+  (let ((output (get-buffer-create "*node output*")))
+    (message "%s %s" beg end)
+    (shell-command-on-region beg end "node -e" output nil output t nil)))
+
+(defun node-run-file (file)
+  (interactive (list (read-string "File: " (buffer-file-name))))
+  (let ((cmd (format "node %s" (shell-quote-argument (expand-file-name file))))
+	(output (get-buffer-create "*node output*")))
+    (shell-command cmd output output)))
+
+(use-package jest
+    :ensure t
+    :hook
+(tsx-ts-mode . jest-minor-mode)
+(typescript-ts-mode . jest-minor-mode))
+
+(use-package prettier
+  :ensure t
+  :defer t
+  :hook
+  (web-mode . prettier-mode)
+  (tsx-ts-mode . prettier-mode)
+  (typescript-ts-mode . prettier-mode))
+
+(use-package tide
+  :ensure t
+  :defer t
+:config
+  (defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1))
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+
+;; aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
+
+;; formats the buffer before saving
+;; DISABLED: Prettier is already configured via prettier-mode hooks above
+;; (add-hook 'before-save-hook 'tide-format-before-save)
+
+;; if you use typescript-mode
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+;; if you use treesitter based typescript-ts-mode (emacs 29+)
+(add-hook 'typescript-ts-mode-hook #'setup-tide-mode))
 
 (use-package clojure-mode
-  :ensure t)
+    :ensure t
+    :custom
+    (setq lsp-clojure-server-command '("/opt/homebrew/bin/clojure-lsp"))
+:hook
+(clojure-mode . lsp-deferred))
 
 (use-package paredit-mode
   :hook
   (clojure-mode . paredit-mode))
+
+(use-package cider
+  :ensure t)
+
+;; requires a custom language server
+(with-eval-after-load 'lsp-mode
+  (add-to-list 'lsp-language-id-configuration '(pkl-mode . "pkl"))
+
+  ;; add the server
+  (lsp-register-client (make-lsp-client
+          :new-connection (lsp-stdio-connection '("java" "-jar" "/Users/LASLEJX1/.pkl/lsp.jar"))
+          :activation-fn (lsp-activate-on "pkl")
+          :server-id 'pkl)))
+
+
+
+;; (use-package pkl-mode
+;;   :vc (:url "https://github.com/sin-ack/pkl-mode" :rev :newest)
+;;   :hook
+;;   (pkl-mode . lsp-deferred))
+
+
+
+(use-package fish-mode :ensure t)
+
+(use-package dockerfile-mode :ensure t)
+
+(use-package terraform-mode
+  :ensure t
+  :custom (terraform-indent-level 4))
+
+(use-package aider
+  :vc (:url "https://github.com/tninja/aider.el")
+  :config
+  ;; For latest claude sonnet model
+  ;; (setq aider-args '("--model" "sonnet" "--no-auto-accept-architect"))
+  ;; (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+  ;; Or chatgpt model
+  ;; (setq aider-args '("--model" "o4-mini"))
+  ;; (setenv "OPENAI_API_KEY" "TODO")
+;;  Or gemini model
+  ;; (setq aider-args '("--model" "gemini-exp"))
+  ;; (setenv "GEMINI_API_KEY" <your-gemini-api-key>)
+  ;; Or use your personal config file
+  (setq aider-args `("--config" ,(expand-file-name "~/emacs/bedrock-config/aider.conf.yml")))
+  ;; ;;
+  ;; Optional: Set a key binding for the transient menu
+  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+
+(use-package claude-code :ensure t
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :config (claude-code-mode)
+  :custom
+  (claude-code-terminal-backend 'vterm)
+  :bind ("C-c c" . claude-code-transient))
 
 (use-package apheleia
   :ensure t
@@ -843,7 +1377,188 @@
 
 (add-hook 'yaml-mode-hook #'(lambda () (apheleia-mode -1)))
 
-(add-hook 'js-json-mode-hook #'(lambda () (setq tab-width 2)) nil t)
+(add-hook 'js-json-mode-hook #'(lambda () (setq-local tab-width 2
+                                                      indent-tabs-mode nil)))
+
+(setq my/org-map (make-sparse-keymap))
+(define-key global-map (kbd "C-c o") `("org" . ,my/org-map))
+
+(setq org-tag-alist (append '((:startgroup . nil) ; at most one of the following
+                            ("@home" . ?h)
+                            ("@work" . ?w)
+                            ("@out". ?o)
+                            (:endgroup . nil)
+                            ;; any of the following
+                            ("project" . ?p)
+                            ("learning" . ?l))
+                          org-tag-alist-for-agenda))
+
+(setq my/org-todo-keywords '(
+                             ("TODO(t)" . org-todo)
+                             ("NEXT(n)" .  (:foreground "#34ebd8" :weight bold :slant italic))
+                             ("PROG(p!)" . (:foreground "green" :weight bold))
+                             ("HOLD(h@)" . (:background "orange" :foreground "white")) ; in progress but held up
+                             ("|")
+                             ("DONE(d!)" . org-done)
+                             ("WONT(w@/!)" . (:foreground "red" :weight bold))))
+
+(use-package org
+  :ensure t
+  :config
+  (setq org-agenda-files (list (expand-file-name "~/org")))
+  ;; set faces
+  (setq org-todo-keywords (list (append '(sequence)
+                                      (seq-map #'(lambda (elt)
+                                                   (if (listp elt)
+                                                       (car elt)
+                                                     elt))
+                                               my/org-todo-keywords))))
+
+(setq org-todo-keyword-faces (let ((f (lambda (elt)
+                                       (if (listp elt)
+                                           `(
+                                            ,(seq-take-while #'(lambda (elt) (not (equal ?\( elt))) (car elt))
+                                            .
+                                            ,(cdr elt))
+                                         elt)
+                                       )))
+                               (seq-map #'(lambda (elt) (funcall f elt)) my/org-todo-keywords)))
+;; 
+  ;; config files
+  (setq +org-chores-file (expand-file-name "~/org/chores.org"))
+  (setq org-agenda-start-day nil
+        org-agenda-span 1)
+  :bind
+  (:map my/org-map
+        ("a" . org-agenda)
+        ("c" . org-capture))
+  :hook
+  (org-mode . (lambda () (setq tab-width 8)))
+  :init
+  (add-hook 'org-mode-hook #'org-indent-mode))
+
+(use-package org-present
+  :ensure t)
+
+(use-package org-ql
+  :ensure t)
+
+(use-package org-jira
+    :ensure t
+    :custom
+(jiralib-url "https://jupiterone.atlassian.net"))
+
+(use-package org-super-agenda
+  :ensure t
+  :init (org-super-agenda-mode 1))
+
+(setq org-agenda-custom-commands
+    '(("c" "Super agenda"
+       ((agenda "" ((org-agenda-overriding-header "")
+                    (org-super-agenda-groups
+                     '((:log t)
+                       (:name "Overdue"
+                        :deadline past)
+                       (:name "Habits"
+                        :habit t)
+                       (:name "Today"
+                        :time-grid t
+                        :date today)
+                       (:name "Unstarted"
+                        :scheduled past)
+                       (:discard (:anything t))
+                       ))))
+        (alltodo "" ((org-agenda-overriding-header "")
+                     (org-super-agenda-groups
+                      `((:log t)
+			
+                       (:name "Important"
+                        :priority "A"
+                        :face (:weight ultra-bold :background "blue")
+                        :order 2)
+                        (:name "Next"
+                         :todo "NEXT"
+                         :order 4)
+                       (:name "Coming up"
+                              :scheduled future
+                              :order 5)
+                        (:name "In progress"
+                         :todo "PROG"
+                         :order 3)
+                        (:name "Can wait"
+                         :priority "C"
+                         :order 6)
+                        (:name "If time"
+                         :priority "B"
+                         :order 5)
+			(:name "Jira -- other"
+			       :file-path ,(expand-file-name "~/.org-jira"))
+                        (:name "Blocked"
+                               :todo "HOLD"
+                               :order 100)
+                        (:discard (:file-path ,(expand-file-name "~/org/habits.org")))
+                        (:discard (:anything t))))))))))
+
+(setq org-capture-templates '(("a" "Agenda")
+                            ("at" "TODO" entry
+                             (file "~/org/agenda.org")
+                             "* TODO %?"
+                             :empty-lines-before 1)
+                              ("ad" "Deadline" entry
+                               (file+olp+datetree "~/org/agenda.org")
+                               "* %?\nDEADLINE: %^{at}t")
+                              ("t" "Todos")
+                              ("tt" "project todo" entry
+                               (file "~/org/projects.org")
+                               "* TODO %?\n%i"
+                             :empty-lines-before 1)
+                              ("tf" "file todo" entry
+                               (file "~/org/projects.org")
+                               "* TODO %?\n%a"
+                           :empty-lines-before 1)
+                              ("tn" "today" entry
+                               (file+headline "~/org/todo.org" "Todos")
+                               "* TODO %?\n%t"
+                             :empty-lines-before 1)
+                              ("td" "deadline" entry
+                               (file+headline "~/org/todo.org" "Todos")
+                               "* TODO %?\nDEADLINE: %^{at}t"
+                           :empty-lines-before 1)
+                              ("ts" "scheduled" entry
+                               (file+headline "~/org/todo.org" "Todos")
+                               "* TODO %?\nSCHEDULED: %^{at}t"
+                             :empty-lines-before 1)
+                              ("c" "chore" entry
+                               (file +org-chores-file)
+                               "* TODO %?\nDEADLINE: %t"
+                           :empty-lines-before 1)
+                              ("n" "notes")
+                              ("nd" "discussion" entry
+                               (file+datetree "~/org/discussions.org")
+                               "* %?"
+                               :tree-type month)
+			      ("nf" "file note" entry
+			       (file "~/org/notes.org")
+			       "* %?\n%a"
+			       :empty-lines-after 1)
+                              ("d" "developer log" entry
+                               (file+datetree "~/org/dev_log.org")
+                               "* %?\n** Worked on\n\n** Went well\n\n** Room for improvement"
+                               :empty-lines-after 1)))
+
+(use-package org-brain
+  :ensure t
+  :bind
+  (("C-c o b" . org-brain-visualize)))
+
+(use-package nyan-mode
+  :ensure t
+  :config
+  ;; (setq nyan-animate-nyancat t
+  ;;       nyan-bar-length 24)
+  :init
+  (when (display-graphic-p)
+    (nyan-mode 1)))
 
 (defun treemacs-git-project ()
 (if-let ((root (project-root (project-current t)))
@@ -853,4 +1568,4 @@
       (message (format "Added %s to treemacs" name)))
   (message "No project found")))
 
-(add-hook 'treemacs-post-buffer-init-hook #'treemacs-git-project)
+;; (add-hook 'treemacs-post-buffer-init-hook #'treemacs-git-project)

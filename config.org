@@ -1,4 +1,5 @@
 * Bedrock stuff
+
 #+begin_src elisp
     (when (< emacs-major-version 29)
       (error (format "Emacs Bedrock only works with Emacs 29 and newer; you have version ~a" emacs-major-version)))
@@ -130,6 +131,19 @@ Convenience function for making outer and inner keymaps
                    (list (,name . ,(make-symbol (concat "my/" name "-map")))))))
 #+end_src
 
+Define a keymap for errors
+#+begin_src elisp
+  (setq my/errors-map (make-sparse-keymap))
+  (define-key global-map (kbd "C-c e") `("errors" . ,my/errors-map))
+#+end_src
+
+** General
+[[https://github.com/noctuid/general.el?tab=readme-ov-file#about][Reference]]
+
+#+begin_src elisp
+  (use-package general
+    :ensure t)
+#+end_src
 
 ** Consult
 #+begin_src elisp
@@ -518,7 +532,7 @@ Function to kill backwards to the first character
     (window-divider-default-bottom-width 1)
     (scroll-bar-mode nil)
     (xref-prompt-for-identifier nil)
-    (desktop-save-mode t)
+    (desktop-save-mode 1)
     (cursor-style 'bar)
     ;; don't show cursors in non-active windows
     (cursor-in-non-selected-windows nil)
@@ -1022,6 +1036,12 @@ Copy file name
         (kill-new (buffer-file-name)))
 #+end_src
 
+* Evil mode
+#+begin_src elisp
+  (load-file (expand-file-name "~/emacs/bedrock-config/evil.el"))
+  
+#+end_src
+
 * God mode
 Function to delete the marked text and exit god mode (similar to =C= in vim)
 #+begin_src elisp
@@ -1039,6 +1059,7 @@ Function to delete the marked text and exit god mode (similar to =C= in vim)
 https://github.com/emacsorphanage/god-mode
 #+begin_src elisp
   (use-package god-mode
+    :disabled t
     :ensure t
     :bind
     ("<escape>" . #'god-mode-all)
@@ -1073,14 +1094,6 @@ https://github.com/emacsorphanage/god-mode
 * Hyperbole
 Hyperbole seems awesome
 Reference [[https://www.gnu.org/s/hyperbole/#summary][here]]
-
-#+begin_src elisp
-  (use-package hyperbole
-    :ensure t
-    :defer t
-    :init
-    (hyperbole-mode 1))
-#+end_src
 
 * yas
 Create a yas keymap
@@ -1186,6 +1199,7 @@ Change the way vertico looks based on the command I'm using
     (vertico-multiform-commands
   	 '(
   	   (consult-imenu buffer indexed)
+  	   (consult-outline buffer indexed)
   	   (consult-project-buffer reverse)
   	   (find-file reverse)
   	   
@@ -1474,10 +1488,7 @@ Use consult-xref for xref! So great
 * magit
 #+begin_src elisp
     (use-package magit
-      :ensure t
-      :bind
-      (("C-M-g" . magit)
-       ("C-M-b" . magit-checkout)))
+      :ensure t)
 #+end_src
 
 
@@ -1495,11 +1506,6 @@ Use consult-xref for xref! So great
 * Languages
 
 ** Flycheck
-Define a keymap for errors
-#+begin_src elisp
-  (setq my/errors-map (make-sparse-keymap))
-  (define-key global-map (kbd "C-c e") `("errors" . ,my/errors-map))
-#+end_src
 
 #+begin_src elisp
   (use-package flycheck
@@ -1541,8 +1547,10 @@ Define a keymap for errors
 
 ** yaml
 #+begin_src elisp
-  (use-package yaml-mode
-    :ensure t)
+      (use-package yaml-mode
+        :ensure t
+        :hook
+        (yaml-mode . display-line-numbers-mode))
 #+end_src
 
 ** DAP mode
@@ -1895,7 +1903,8 @@ Reference: https://github.com/ananthakumaran/tide
   (setq company-tooltip-align-annotations t)
 
   ;; formats the buffer before saving
-  (add-hook 'before-save-hook 'tide-format-before-save)
+  ;; DISABLED: Prettier is already configured via prettier-mode hooks above
+  ;; (add-hook 'before-save-hook 'tide-format-before-save)
 
   ;; if you use typescript-mode
   (add-hook 'typescript-mode-hook #'setup-tide-mode)

@@ -17,8 +17,8 @@
      "/Users/jonlasley/org/game_dev_log.org"))
  '(org-fold-core-style 'overlays)
  '(package-selected-packages
-   '(claude-code dracula-theme evil key-chord use-package
-		 use-package-chords which-key))
+   '(company dracula-theme evil general key-chord use-package
+	     use-package-chords which-key))
  '(package-vc-selected-packages
    '((claude-code :url "https://github.com/stevemolitor/claude-code.el")
      (ultra-scroll :vc-backend Git :url
