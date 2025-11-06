@@ -1,10 +1,5 @@
 (message "Loaded in evil.el")
 
-
-(define-key my/window-map "v" '("split below" . evil-window-split))
-(define-key my/window-map "h" '("split sideways" . evil-window-vsplit))
-(define-key my/window-map "b" '("split new buffer" . evil-split-buffer))
-
 (defmacro evil-normal-key-map! (keys map)
   "Creates a new binding for a keymap, prefixed by <leader>."
   `(evil-define-key 'normal 'global (kbd ,(string-join (list "<leader>" keys) "")) ,map))
@@ -17,26 +12,16 @@
   :ensure t
   :custom
   (evil-undo-system 'undo-fu)
-  :config
-  ;; set the leader
-  (evil-set-leader 'normal (kbd "SPC"))
-  (evil-set-leader 'visual (kbd "SPC"))
-
-  ;; commands
-  (evil-define-key 'normal 'global (kbd "s") 'avy-goto-char-2)
-  
-  (evil-define-key 'normal 'global (kbd "go") 'xref-find-definitions-other-window)
-  (evil-define-key 'normal 'global (kbd "gd") 'xref-find-definitions)
-  (evil-define-key 'normal 'global (kbd "gD") 'xref-find-references)
-
-  (evil-define-key 'normal 'global (kbd "<leader>SPC") 'execute-extended-command)
-  (evil-define-key 'normal 'global (kbd "<leader>;") 'eval-expression)
-  (evil-define-key 'normal 'global (kbd "<leader>gg") 'magit)
-  (evil-define-key 'normal 'global (kbd "<leader>r") 'rg-menu)
-
-  ;; leader-b
   :init
   (evil-mode 1))
+
+;; pretty annoying to not have
+;; https://github.com/emacs-evil/evil-surround
+(use-package evil-surround
+  :requires evil
+  :ensure t
+  :config
+  (global-evil-surround-mode 1))
 
 ;; HELPERS
 (defmacro general-create-prefix-keymap (name prefix states &rest bindings)
@@ -97,8 +82,12 @@ Example:
 
 (general-define-key
  :keymaps '(normal visual)
- :which-key "comment"
- "gc" 'comment-dwim)
+ "gc" '(comment-dwim :wk "comment")
+ "gd" '(xref-find-definitions :wk "goto def")
+ "gD" '(xref-find-references :wk "goto ref")
+ "go" '(xref-find-definitions-other-window :wk "goto def (other)")
+ "gt" '(lsp-goto-type-definition :wk "goto type")
+ "s" '(evil-avy-goto-char-2 :wk "search"))
 
 ;; CORFU
 (general-def 'insert
@@ -111,34 +100,33 @@ Example:
 
 ;; LEADER KEYS
 
-(my-leader-def '(normal visual)
+(my-leader-def
   "SPC" 'execute-extended-command
-  "gg" 'magit
   "r" 'rg-menu
-  ";" 'eval-expression
-  "v" 'vterm-other-window
-  "y" 'consult-yank-from-kill-ring)
+  ";" 'eval-expression)
 
 ;; nested maps
-(my-leader-def '(normal visual)
+(my-leader-def
   "s" '(:keymap my/consult-map :which-key "consult")
   "h" '(:keymap help-map :which-key "help")
   "p" '(:keymap project-prefix-map :which-key "project")
   "w" '(:keymap my/window-map :which-key "window")
-  "f" '(:keymap my/file-map :which-key "file")
   "g" '(:keymap my/goto-map :which-key "goto")
   "e" '(:keymap my/errors-map :which-key "errors")
   "TAB" '(:keymap eyebrowse-mode-prefix-map :which-key "eyebrowse"))
 
 ;; eyebrowse helper
 (general-def eyebrowse-mode-prefix-map
-  "TAB" 'eyebrowse-switch-to-window-config)
+  "TAB" 'eyebrowse-switch-to-window-config
+  "d" 'eyebrowse-close-window-config
+  "n" 'eyebrowse-create-window-config)
 
 ;; FILES
 (my-leader-def
   "f" '(:ignore t :wk "files")
   "fs" '(save-buffer :wk "save")
   "ff" '(find-file :wk "find")
+  "fF" '(find-file-other-window :wk "file other window")
   "fr" '(consult-recent-file :wk "recent")
   "fy" '(copy-filename :wk "copy path"))
 
@@ -149,12 +137,21 @@ Example:
   "d" '(kill-current-buffer :wk "kill")
   "q" '(bury-buffer :wk "bury")
   "b" '(consult-project-buffer :wk "consult"))
-(my-leader-def '(normal visual)
+(my-leader-def
   "b" '(:keymap my/buffer-map :wk "buffers"))
 
 ;; PROJECT
 (general-def project-prefix-map
-  "d" '(project-dired :wk "dired"))
+  "d" '(project-dired :wk "dired")
+  "t" 'neotree
+  "F" '(projectile-find-file-other-window :wk "file other window"))
+
+;; WINDOW
+(general-def my/window-map
+  "O" '(delete-other-windows :wk "only this")
+  "=" '(balance-windows :wk "balance")
+  "s" '(evil-window-vsplit :wk "below")
+  "v" '(evil-window-split :wk "split"))
 
 ;; VTERM
 (defun new-vterm-project ()
@@ -180,3 +177,11 @@ Example:
   "is" 'yas-insert-snippet
   "ir" 'consult-register
   "iy" 'consult-yank-from-kill-ring)
+
+;; GOTO
+(general-def my/goto-map
+  "s" '(evil-avy-goto-char-timer :wk "search"))
+
+;; ERRORS
+(general-def my/errors-map
+  "d" '(flycheck-explain-error-at-point :wk "describe"))
